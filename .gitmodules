@@ -1,0 +1,7 @@
+[submodule "libs/CLI11"]
+	path = libs/CLI11
+	url = https://github.com/ionlang/CLI11
+[submodule "libs/googletest"]
+	path = libs/googletest
+	url = https://github.com/google/googletest
+	ignore = dirty
