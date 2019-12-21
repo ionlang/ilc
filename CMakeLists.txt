@@ -46,15 +46,17 @@ file(GLOB_RECURSE SOURCES
 )
 
 # Specify that this project is a library.
-add_library(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Provide include directories to be used in the build command. Position in file matters.
 include_directories("src")
+add_subdirectory(libs/ionir)
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(BUILD_TESTS "Build tests" ON)
 
 if (BUILD_TESTS)
     add_subdirectory(libs/googletest)
-    add_subdirectory(test)
+    add_subdirectory()
+    # add_subdirectory(test)
 endif()
