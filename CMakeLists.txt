@@ -43,6 +43,7 @@ set(VERSION "$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)")
 file(GLOB_RECURSE SOURCES
     "src/*.h"
     "src/*.cpp"
+    "libs/ionir/src/*.cpp"
 )
 
 # Specify that this project is a library.
@@ -50,13 +51,14 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Provide include directories to be used in the build command. Position in file matters.
 include_directories("src")
-add_subdirectory(libs/ionir)
+include_directories(libs)
+include_directories(libs/ionir/src)
+include_directories(libs/ionir/libs)
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 
 if (BUILD_TESTS)
     add_subdirectory(libs/googletest)
-    add_subdirectory()
     # add_subdirectory(test)
 endif()
