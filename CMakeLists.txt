@@ -12,19 +12,6 @@ set(PROJECT_URL "https://github.com/ionlang/onyx")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-# Setup default build flags.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} /MT")
-
-# Option to use MD.
-option(USE_MD "Use MD instead of MTd" OFF)
-
-if (USE_MD)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MD")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-    message(STATUS "Using /MD flag")
-endif(USE_MD)
-
 # Options.
 option(USE_CLANG "Use Clang and Clang++ as compilers")
 
@@ -46,8 +33,22 @@ file(GLOB_RECURSE SOURCES
     "libs/ionir/src/*.cpp"
 )
 
+# Setup LLVM include directories.
+find_package(LLVM 9.0.0 REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
 # Specify that this project is a library.
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+llvm_map_components_to_libnames(llvm_libs all)
+
+# Link against LLVM libraries.
+target_link_libraries("${PROJECT_NAME}" LLVM)
 
 # Provide include directories to be used in the build command. Position in file matters.
 include_directories("src")
@@ -58,6 +59,7 @@ include_directories(libs/ionir/libs)
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(BUILD_TESTS "Build tests" OFF)
 
+# TODO
 if (BUILD_TESTS)
     add_subdirectory(libs/googletest)
     # add_subdirectory(test)
