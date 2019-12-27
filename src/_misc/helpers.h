@@ -3,5 +3,5 @@
 #include <functional>
 
 namespace ilc {
-    typedef std::function<void> Callback;
+    typedef void (*Callback)();
 }

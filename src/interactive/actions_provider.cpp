@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "actions_provider.h"
 
 namespace ilc {
@@ -6,11 +7,12 @@ namespace ilc {
     }
 
     bool ActionsProvider::insert(std::string name, Callback action) {
-        if (this->containsAction(name)) {
+        if (this->contains(name)) {
             return false;
         }
 
-        this->actions.insert(name, action);
+        // TODO: Throws.
+//        this->actions.insert(name, action);
 
         return true;
     }
@@ -24,8 +26,8 @@ namespace ilc {
     }
 
     void ActionsProvider::registerCommon() {
-        this->registerAction("quit", []() {
-
+        this->insert("quit", []() {
+            std::exit(EXIT_SUCCESS);
         });
     }
 }

@@ -3,12 +3,12 @@
 #include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
-#include "ionir/src/llvm/codegen/llvm_visitor.h"
-#include "ionir/src/syntax/lexer.h"
-#include "ionir/src/parsing/parser.h"
-#include "ionir/src/llvm/module.h"
-#include "ionir/src/misc/helpers.h"
-#include "misc/const.h"
+#include <ionir/llvm/codegen/llvm_visitor.h>
+#include <ionir/syntax/parser.h>
+#include <ionir/lexical/lexer.h>
+#include <ionir/llvm/module.h>
+#include <ionir/misc/helpers.h>
+#include "_misc/const.h"
 #include "interactive_engine.h"
 
 namespace ilc {
@@ -37,7 +37,7 @@ namespace ilc {
                     }
 
                     // Invoke the action.
-                    action();
+//                    action();
                 }
 
                 return;
@@ -54,7 +54,7 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                ionir::Ptr < ionir::Construct > construct = parser.parseTopLevel();
+                ionir::Ptr<ionir::Construct> construct = parser.parseTopLevel();
 
                 std::cout << "Parser: " << (int) construct->getConstructKind() << std::endl;
 
