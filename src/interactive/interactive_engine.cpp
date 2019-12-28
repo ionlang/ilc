@@ -1,4 +1,3 @@
-#include <exception>
 #include <vector>
 #include <iostream>
 #include <llvm/IR/Module.h>
@@ -12,9 +11,15 @@
 #include <ilc/interactive/interactive_engine.h>
 
 namespace ilc {
-    InteractiveEngine::InteractiveEngine(ActionsProvider actionsProvider)
-        : actionsProvider(actionsProvider) {
+    InteractiveEngine::InteractiveEngine(Options options, ActionsProvider actionsProvider)
+        : options(options), actionsProvider(actionsProvider) {
         //
+    }
+
+    void InteractiveEngine::tryThrow(std::exception exception) {
+        if (this->options.throwInteractiveModeExceptions) {
+            throw exception;
+        }
     }
 
     void InteractiveEngine::run() {
@@ -42,12 +47,17 @@ namespace ilc {
                 }
             }
 
-            std::cout << "Input: " << input << " (" << input.length() << " character(s))" << std::endl;
+            std::cout << "--- Input: " << " (" << input.length() << " character(s)) ---" << std::endl;
+            std::cout << input << std::endl;
 
             ionir::Lexer lexer = ionir::Lexer(input);
             std::vector<ionir::Token> tokens = lexer.scan();
 
-            std::cout << "Lexer: " << tokens.size() << " token(s)" << std::endl;
+            std::cout << "--- Lexer: " << tokens.size() << " token(s) ---" << std::endl;
+
+            for (auto token : tokens) {
+                std::cout << token << std::endl;
+            }
 
             ionir::TokenStream *stream = new ionir::TokenStream(tokens);
             ionir::Parser parser = ionir::Parser(stream);
@@ -55,7 +65,7 @@ namespace ilc {
             try {
                 ionir::Ptr<ionir::Construct> construct = parser.parseTopLevel();
 
-                std::cout << "Parser: " << (int)construct->getConstructKind() << std::endl;
+                std::cout << "--- Parser: " << (int)construct->getConstructKind() << " ---" << std::endl;
 
                 try {
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
@@ -63,15 +73,17 @@ namespace ilc {
                     ionir::LlvmVisitor visitor = ionir::LlvmVisitor(llvmModule);
                     ionir::Module module = ionir::Module(visitor.getModule());
 
-                    std::cout << "LLVM code-generation:" << std::endl;
+                    std::cout << "--- LLVM code-generation ---" << std::endl;
                     module.print();
                 }
                 catch (std::exception &exception) {
-                    std::cout << "LLVM code-generation: Exception" << std::endl;
+                    std::cout << "LLVM code-generation: [Exception] " << exception.what() << std::endl;
+                    this->tryThrow(exception);
                 }
             }
             catch (std::exception &exception) {
-                std::cout << "Parser: Exception" << std::endl;
+                std::cout << "Parser: [Exception] " << exception.what() << std::endl;
+                this->tryThrow(exception);
             }
 
             delete stream;

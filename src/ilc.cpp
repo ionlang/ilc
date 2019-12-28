@@ -1,39 +1,10 @@
-#include <optional>
 #include <string>
 #include <CLI11/CLI11.hpp>
 #include <ionir/misc/static_init.h>
 #include <ilc/interactive/interactive_engine.h>
+#include <ilc/cli/options.h>
 
 using namespace ilc;
-
-enum class PhaseKind {
-    Lexing,
-
-    Parsing,
-
-    CodeGeneration
-};
-
-struct Options {
-    PhaseKind phase = PhaseKind::CodeGeneration;
-
-    /**
-     * Target file path which to write result(s) to.
-     */
-    std::optional<std::string> out = std::nullopt;
-
-    /**
-     * Whether to use interactive mode. If true,
-     * no other options nor flags will be processed.
-     */
-    bool isInteractive = false;
-
-    /**
-     * Whether the input language being processed
-     * is IonIR.
-     */
-    bool isIr = false;
-};
 
 void setup(CLI::App &app, Options &options) {
     // Register options.
@@ -42,6 +13,7 @@ void setup(CLI::App &app, Options &options) {
 
     // Register flags.
     app.add_flag("-i,--interactive", options.isInteractive);
+    app.add_flag("-t,--throw-interactive", options.throwInteractiveModeExceptions);
     app.add_flag("-r,--ir", options.isIr);
 }
 
@@ -59,7 +31,7 @@ int main(int argc, char **argv) {
 
     if (options.isInteractive) {
         // TODO: Handle '--ir' flag in interactive mode.
-        InteractiveEngine interactiveEngine = InteractiveEngine();
+        InteractiveEngine interactiveEngine = InteractiveEngine(options);
 
         // Register common actions.
         interactiveEngine.getActionsProvider().registerCommon();
