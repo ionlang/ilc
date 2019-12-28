@@ -8,8 +8,8 @@
 #include <ionir/lexical/lexer.h>
 #include <ionir/llvm/module.h>
 #include <ionir/misc/helpers.h>
-#include "_misc/const.h"
-#include "interactive_engine.h"
+#include <ilc/misc/const.h>
+#include <ilc/interactive/interactive_engine.h>
 
 namespace ilc {
     InteractiveEngine::InteractiveEngine(ActionsProvider actionsProvider)
@@ -19,6 +19,7 @@ namespace ilc {
 
     void InteractiveEngine::run() {
         std::string input;
+
         const std::string prompt = "> ";
 
         while (true) {
@@ -37,13 +38,11 @@ namespace ilc {
                     }
 
                     // Invoke the action.
-//                    action();
+                    (*action)();
                 }
-
-                return;
             }
 
-            std::cout << "Input: " << input << " (" << input.size() << " character(s))" << std::endl;
+            std::cout << "Input: " << input << " (" << input.length() << " character(s))" << std::endl;
 
             ionir::Lexer lexer = ionir::Lexer(input);
             std::vector<ionir::Token> tokens = lexer.scan();
@@ -56,7 +55,7 @@ namespace ilc {
             try {
                 ionir::Ptr<ionir::Construct> construct = parser.parseTopLevel();
 
-                std::cout << "Parser: " << (int) construct->getConstructKind() << std::endl;
+                std::cout << "Parser: " << (int)construct->getConstructKind() << std::endl;
 
                 try {
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
@@ -65,7 +64,6 @@ namespace ilc {
                     ionir::Module module = ionir::Module(visitor.getModule());
 
                     std::cout << "LLVM code-generation:" << std::endl;
-
                     module.print();
                 }
                 catch (std::exception &exception) {

@@ -14,6 +14,7 @@ set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Scan dependencies.
 find_package(ionir REQUIRED)
+find_package(CLI11 CONFIG)
 
 # Options.
 option(USE_CLANG "Use Clang and Clang++ as compilers")
@@ -57,8 +58,7 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE LLVM)
 target_link_libraries("${PROJECT_NAME}" PRIVATE ionir::ionir)
 
 # Provide include directories to be used in the build command. Position in file matters.
-include_directories("src")
-include_directories(libs)
+target_include_directories(${PROJECT_NAME} PUBLIC "src" "include" "libs")
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(BUILD_TESTS "Build tests" OFF)

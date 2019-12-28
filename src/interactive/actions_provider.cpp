@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include "actions_provider.h"
+#include <ilc/interactive/actions_provider.h>
 
 namespace ilc {
     bool ActionsProvider::contains(std::string name) {
