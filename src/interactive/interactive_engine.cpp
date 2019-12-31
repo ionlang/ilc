@@ -1,12 +1,14 @@
+#include <optional>
 #include <vector>
 #include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <ionir/llvm/codegen/llvm_visitor.h>
+#include <ionir/llvm/module.h>
 #include <ionir/syntax/parser.h>
 #include <ionir/lexical/lexer.h>
-#include <ionir/llvm/module.h>
 #include <ionir/misc/helpers.h>
+#include <ionir/reporting/stack_trace.h>
 #include <ilc/misc/const.h>
 #include <ilc/interactive/interactive_engine.h>
 
@@ -63,15 +65,40 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                ionir::Ptr<ionir::Construct> construct = parser.parseTopLevel();
+                std::optional<ionir::Ptr<ionir::Construct>> construct = parser.parseTopLevel();
 
-                std::cout << "--- Parser: " << (int)construct->getConstructKind() << " ---" << std::endl;
+                // TODO: Improve if block?
+                if (construct.has_value()) {
+                    std::cout << "--- Parser: " << (int)construct->get()->getConstructKind() << " ---" << std::endl;
+                }
+                else {
+                    std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
+
+                    ionir::Ptr<ionir::StackTrace> stackTrace = parser.getStackTrace();
+                    std::optional<std::string> stackTraceResult = stackTrace->make();
+
+                    // TODO: Check for null ->make().
+                    if (stackTraceResult.has_value()) {
+                        std::cout << *stackTraceResult;
+                    }
+                    else {
+                        std::cout << "Could not create stack-trace" << std::endl;
+                    }
+
+                    // TODO: Being repetitive.
+                    delete stream;
+
+                    continue;
+                }
 
                 try {
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
                     llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
                     ionir::LlvmVisitor visitor = ionir::LlvmVisitor(llvmModule);
                     ionir::Module module = ionir::Module(visitor.getModule());
+
+                    // Visit the parsed top-level construct.
+                    visitor.visit(*construct);
 
                     std::cout << "--- LLVM code-generation ---" << std::endl;
                     module.print();
