@@ -8,7 +8,6 @@
 #include <ionir/syntax/parser.h>
 #include <ionir/lexical/lexer.h>
 #include <ionir/misc/helpers.h>
-#include <ionir/reporting/stack_trace.h>
 #include <ilc/misc/const.h>
 #include <ilc/interactive/interactive_engine.h>
 
@@ -65,7 +64,8 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                std::optional<ionir::Ptr<ionir::Construct>> construct = parser.parseTopLevel();
+                std::optional<ionir::Ptr<ionir::Construct>>
+                    construct = parser.parseTopLevel();
 
                 // TODO: Improve if block?
                 if (construct.has_value()) {
@@ -74,16 +74,16 @@ namespace ilc {
                 else {
                     std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
 
-                    ionir::Ptr<ionir::StackTrace> stackTrace = parser.getStackTrace();
-                    std::optional<std::string> stackTraceResult = stackTrace->make();
-
-                    // TODO: Check for null ->make().
-                    if (stackTraceResult.has_value()) {
-                        std::cout << *stackTraceResult;
-                    }
-                    else {
-                        std::cout << "Could not create stack-trace" << std::endl;
-                    }
+                    //                    ionir::StackTrace stackTrace = parser.getStackTrace();
+                    //                    std::optional<std::string> stackTraceResult = stackTrace->make();
+                    //
+                    //                    // TODO: Check for null ->make().
+                    //                    if (stackTraceResult.has_value()) {
+                    //                        std::cout << *stackTraceResult;
+                    //                    }
+                    //                    else {
+                    //                        std::cout << "Could not create stack-trace" << std::endl;
+                    //                    }
 
                     // TODO: Being repetitive.
                     delete stream;

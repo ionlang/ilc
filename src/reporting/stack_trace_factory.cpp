@@ -1,9 +1,21 @@
 #include <sstream>
 #include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/reporting/code_highlight.h>
-#include "code_trace_block.cpp"
 
 namespace ilc {
+    std::string StackTraceFactory::createGutter(std::optional<uint32_t> lineNumber) {
+        return (lineNumber.has_value() ? std::to_string(*lineNumber) : " ") + " | ";
+    }
+
+    std::string StackTraceFactory::createLine(std::string text, std::optional<uint32_t> lineNumber) {
+        return "\t" + StackTraceFactory::createGutter(lineNumber) + text + "\n";
+    }
+
+    std::string StackTraceFactory::createLine(ionir::CodeBlockLine line) {
+        // TODO: What about CodeBlockLine's 'highlight' property?
+        return StackTraceFactory::createLine(line.text, line.lineNumber);
+    }
+
     std::optional<std::string> StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock) {
         if (codeBlock.empty()) {
             return std::nullopt;
@@ -34,7 +46,7 @@ namespace ilc {
              * will be based upon the 'text' property
              * instead of the token vector of 'line'.
              */
-            result << CodeTraceBlock::createLine(line) << std::endl;
+            result << StackTraceFactory::createLine(line) << std::endl;
         }
 
         return result.str();

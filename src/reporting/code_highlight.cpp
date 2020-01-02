@@ -5,7 +5,7 @@
 #include <ilc/reporting/code_highlight.h>
 
 namespace ilc {
-    static std::string CodeHighlight::coat(ionir::Token token) {
+    std::string CodeHighlight::coat(ionir::Token token) {
         // Abstract the token's type & value to avoid repetition.
         const ionir::TokenType type = token.getType();
         const std::string value = token.getValue();
@@ -98,5 +98,3 @@ namespace ilc {
 //
 //    return codeBlock.str();
 //}
-
-}
