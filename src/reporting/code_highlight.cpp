@@ -6,17 +6,17 @@
 
 namespace ilc {
     std::string CodeHighlight::coat(ionir::Token token) {
-        // Abstract the token's type & value to avoid repetition.
-        const ionir::TokenType type = token.getType();
+        // Abstract the token's kind & value to avoid repetition.
+        const ionir::TokenKind kind = token.getKind();
         const std::string value = token.getValue();
 
-        if (ionir::TokenIdentifier::isKeyword(type)) {
+        if (ionir::TokenIdentifier::isKeyword(kind)) {
             return ionir::ConsoleColor::blue(value);
         }
-        else if (type == ionir::TokenType::Identifier) {
+        else if (kind == ionir::TokenKind::Identifier) {
             return ionir::ConsoleColor::green(value);
         }
-        else if (ionir::TokenIdentifier::isNumeric(type)) {
+        else if (ionir::TokenIdentifier::isNumeric(kind)) {
             return ionir::ConsoleColor::magenta(value);
         }
             // No coating should be applied to the provided token's value.

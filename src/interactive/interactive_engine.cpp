@@ -10,6 +10,7 @@
 #include <ionir/misc/helpers.h>
 #include <ilc/misc/const.h>
 #include <ilc/interactive/interactive_engine.h>
+#include <ilc/reporting/stack_trace_factory.h>
 
 namespace ilc {
     InteractiveEngine::InteractiveEngine(Options options, ActionsProvider actionsProvider)
@@ -74,16 +75,21 @@ namespace ilc {
                 else {
                     std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
 
-                    //                    ionir::StackTrace stackTrace = parser.getStackTrace();
-                    //                    std::optional<std::string> stackTraceResult = stackTrace->make();
-                    //
-                    //                    // TODO: Check for null ->make().
-                    //                    if (stackTraceResult.has_value()) {
-                    //                        std::cout << *stackTraceResult;
-                    //                    }
-                    //                    else {
-                    //                        std::cout << "Could not create stack-trace" << std::endl;
-                    //                    }
+                    ionir::StackTrace stackTrace = parser.getStackTrace();
+                    ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(*stream);
+
+                    std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(
+                        codeBacktrack,
+                        stackTrace
+                    );
+
+                    // TODO: Check for null ->make().
+                    if (stackTraceResult.has_value()) {
+                        std::cout << *stackTraceResult;
+                    }
+                    else {
+                        std::cout << "Could not create stack-trace" << std::endl;
+                    }
 
                     // TODO: Being repetitive.
                     delete stream;

@@ -1,3 +1,4 @@
+#include <exception>
 #include <sstream>
 #include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/reporting/code_highlight.h>
@@ -33,7 +34,7 @@ namespace ilc {
                  * occur; the value may remain the same.
                  */
                 token = ionir::Token(
-                    token.getType(),
+                    token.getKind(),
                     CodeHighlight::coat(token),
                     token.getStartPosition(),
                     token.getLineNumber()
@@ -52,7 +53,8 @@ namespace ilc {
         return result.str();
     }
 
-    std::optional<std::string> StackTraceFactory::makeStackTrace(const ionir::StackTrace stackTrace) {
+    std::optional<std::string>
+    StackTraceFactory::makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace) {
         if (stackTrace.empty()) {
             return std::nullopt;
         }
@@ -63,6 +65,21 @@ namespace ilc {
         for (const auto notice : stackTrace) {
             if (!prime) {
                 result << "\tat ";
+            }
+            else {
+                std::optional<ionir::CodeBlock> codeBlock = codeBacktrack.createCodeBlockNear(notice);
+
+                if (!codeBlock.has_value()) {
+                    throw std::runtime_error("Unexpected code block to be null");
+                }
+
+                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock);
+
+                if (!codeBlockString.has_value()) {
+                    throw std::runtime_error("Unexpected code block string to be null");
+                }
+
+                result << *codeBlockString;
             }
 
             // Append the notice's individual trace to the stack trace.

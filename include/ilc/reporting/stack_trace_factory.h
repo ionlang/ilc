@@ -18,6 +18,7 @@ namespace ilc {
 
         static std::optional<std::string> makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock);
 
-        static std::optional<std::string> makeStackTrace(ionir::StackTrace stackTrace);
+        static std::optional<std::string>
+        makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace);
     };
 }
