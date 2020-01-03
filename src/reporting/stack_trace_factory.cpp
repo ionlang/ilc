@@ -1,7 +1,7 @@
-#include <exception>
 #include <sstream>
 #include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/reporting/code_highlight.h>
+#include <ionir/misc/console_color.h>
 
 namespace ilc {
     std::string StackTraceFactory::createGutter(std::optional<uint32_t> lineNumber) {
@@ -13,40 +13,43 @@ namespace ilc {
     }
 
     std::string StackTraceFactory::createLine(ionir::CodeBlockLine line) {
-        // TODO: What about CodeBlockLine's 'highlight' property?
         return StackTraceFactory::createLine(line.text, line.lineNumber);
     }
 
-    std::optional<std::string> StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock) {
+    std::optional<std::string>
+    StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight) {
         if (codeBlock.empty()) {
             return std::nullopt;
         }
 
         std::stringstream result;
 
-        for (auto line : codeBlock) {
-            // Apply syntax highlighting to the line's applicable token(s).
-            for (auto &token : line.tokens) {
-                /**
-                 * Replace entire token with coated value,
-                 * since tokens' properties are read-only.
-                 * Note that value coating is not bound to
-                 * occur; the value may remain the same.
-                 */
-                token = ionir::Token(
-                    token.getKind(),
-                    CodeHighlight::coat(token),
-                    token.getStartPosition(),
-                    token.getLineNumber()
-                );
+        for (auto &line : codeBlock) {
+            if (highlight) {
+                // Entire code should be highlighted gray by default.
+                line.text = ionir::ConsoleColor::white(line.text);
+
+                // Apply syntax highlighting to the line's applicable token(s).
+                for (auto &token : line.tokens) {
+                    /**
+                     * Note that value coating is not bound to
+                     * occur; the value may remain the same.
+                     */
+                    std::string highlightedText = CodeHighlight::coat(token);
+
+                    /**
+                     * Split the line's text into two halves,
+                     * excluding the token's value, in order to
+                     * insert coated text.
+                     */
+                    std::string firstHalf = line.text.substr(0, token.getStartPosition());
+                    std::string secondHalf = line.text.substr(token.getEndPosition());
+
+                    // Replace the line's text with the same, possibly highlighted text.
+                    line.text = firstHalf + secondHalf;
+                }
             }
 
-            /**
-             * TODO: Replacing token with coated one
-             * is currently useless since final code
-             * will be based upon the 'text' property
-             * instead of the token vector of 'line'.
-             */
             result << StackTraceFactory::createLine(line) << std::endl;
         }
 
@@ -54,7 +57,8 @@ namespace ilc {
     }
 
     std::optional<std::string>
-    StackTraceFactory::makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace) {
+    StackTraceFactory::makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace,
+        bool highlight) {
         if (stackTrace.empty()) {
             return std::nullopt;
         }
@@ -73,7 +77,7 @@ namespace ilc {
                     throw std::runtime_error("Unexpected code block to be null");
                 }
 
-                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock);
+                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock, highlight);
 
                 if (!codeBlockString.has_value()) {
                     throw std::runtime_error("Unexpected code block string to be null");
@@ -87,6 +91,15 @@ namespace ilc {
 
             // Raise the prime flag to take effect upon next iteration.
             prime = false;
+        }
+
+        /**
+         * Finally, if highlight was specified, append
+         * a reset instruction at the end to clear
+         * applied formatting.
+         */
+        if (highlight) {
+            result << ionir::ConsoleColor::reset;
         }
 
         // Return the resulting stack trace string.

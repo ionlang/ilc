@@ -7,7 +7,7 @@
 #include "actions_provider.h"
 
 namespace ilc {
-    class InteractiveEngine {
+    class Repl {
     protected:
         Options options;
 
@@ -16,7 +16,7 @@ namespace ilc {
         void tryThrow(std::exception exception);
 
     public:
-        explicit InteractiveEngine(Options options, ActionsProvider actionsProvider = ActionsProvider());
+        explicit Repl(Options options, ActionsProvider actionsProvider = ActionsProvider());
 
         void run();
 

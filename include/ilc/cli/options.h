@@ -20,16 +20,16 @@ namespace ilc {
         std::optional<std::string> out = std::nullopt;
 
         /**
-         * Whether to use interactive mode. If true,
-         * no other options nor flags will be processed.
+         * Whether to apply syntax-highlighting to stack trace.
+         * code blocks.
          */
-        bool isInteractive = false;
+        bool stackTraceHighlight = true;
 
         /**
          * Whether to throw exceptions caught within
-         * interactive mode.
+         * REPL mode.
          */
-        bool throwInteractiveModeExceptions = false;
+        bool replThrow = false;
 
         /**
          * Whether the input language being processed

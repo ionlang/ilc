@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <ilc/interactive/actions_provider.h>
+#include <ilc/repl/actions_provider.h>
 
 namespace ilc {
     bool ActionsProvider::contains(std::string name) {
@@ -11,8 +11,7 @@ namespace ilc {
             return false;
         }
 
-        // TODO: Throws.
-//        this->actions.insert(name, action);
+        this->actions[name] = action;
 
         return true;
     }
@@ -27,6 +26,7 @@ namespace ilc {
 
     void ActionsProvider::registerCommon() {
         this->insert("quit", []() {
+            // TODO: std::exit is not a safe method to exit the program.
             std::exit(EXIT_SUCCESS);
         });
     }

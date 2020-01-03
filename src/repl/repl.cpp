@@ -1,3 +1,6 @@
+#define ILC_CLI_REPL_ACTION_PREFIX ':'
+#define ILC_CLI_REPL_PROMPT "> "
+
 #include <optional>
 #include <vector>
 #include <iostream>
@@ -9,32 +12,30 @@
 #include <ionir/lexical/lexer.h>
 #include <ionir/misc/helpers.h>
 #include <ilc/misc/const.h>
-#include <ilc/interactive/interactive_engine.h>
+#include <ilc/repl/repl.h>
 #include <ilc/reporting/stack_trace_factory.h>
 
 namespace ilc {
-    InteractiveEngine::InteractiveEngine(Options options, ActionsProvider actionsProvider)
+    Repl::Repl(Options options, ActionsProvider actionsProvider)
         : options(options), actionsProvider(actionsProvider) {
         //
     }
 
-    void InteractiveEngine::tryThrow(std::exception exception) {
-        if (this->options.throwInteractiveModeExceptions) {
+    void Repl::tryThrow(std::exception exception) {
+        if (this->options.replThrow) {
             throw exception;
         }
     }
 
-    void InteractiveEngine::run() {
+    void Repl::run() {
         std::string input;
 
-        const std::string prompt = "> ";
-
         while (true) {
-            std::cout << prompt;
+            std::cout << ILC_CLI_REPL_PROMPT;
             std::getline(std::cin, input);
 
             // Check actions provider against input if applicable.
-            if (input.length() > 0 && input[0] == '\\') {
+            if (input.length() > 0 && input[0] == ILC_CLI_REPL_ACTION_PREFIX) {
                 std::string actionName = input.substr(1);
 
                 if (this->actionsProvider.contains(actionName)) {
@@ -47,6 +48,11 @@ namespace ilc {
                     // Invoke the action.
                     (*action)();
                 }
+                else {
+                    std::cout << "Unrecognized action. Type ':quit' to exit." << std::endl;
+                }
+
+                continue;
             }
 
             std::cout << "--- Input: " << " (" << input.length() << " character(s)) ---" << std::endl;
@@ -76,11 +82,12 @@ namespace ilc {
                     std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
 
                     ionir::StackTrace stackTrace = parser.getStackTrace();
-                    ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(*stream);
+                    ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(input, *stream);
 
                     std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(
                         codeBacktrack,
-                        stackTrace
+                        stackTrace,
+                        this->options.stackTraceHighlight
                     );
 
                     // TODO: Check for null ->make().
@@ -123,7 +130,7 @@ namespace ilc {
         }
     }
 
-    ActionsProvider &InteractiveEngine::getActionsProvider() {
+    ActionsProvider &Repl::getActionsProvider() {
         return this->actionsProvider;
     }
 }
