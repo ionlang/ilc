@@ -1,7 +1,7 @@
 #include <sstream>
 #include <vector>
 #include <ionir/lexical/token_identifier.h>
-#include <ionir/misc/console_color.h>
+#include <ilc/misc/console_color.h>
 #include <ilc/reporting/code_highlight.h>
 
 namespace ilc {
@@ -11,13 +11,13 @@ namespace ilc {
         const std::string value = token.getValue();
 
         if (ionir::TokenIdentifier::isKeyword(kind)) {
-            return ionir::ConsoleColor::blue(value);
+            return ConsoleColor::blue(value);
         }
         else if (kind == ionir::TokenKind::Identifier) {
-            return ionir::ConsoleColor::green(value);
+            return ConsoleColor::green(value);
         }
         else if (ionir::TokenIdentifier::isNumeric(kind)) {
-            return ionir::ConsoleColor::magenta(value);
+            return ConsoleColor::magenta(value);
         }
             // No coating should be applied to the provided token's value.
         else {

@@ -1,7 +1,7 @@
 #include <sstream>
 #include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/reporting/code_highlight.h>
-#include <ionir/misc/console_color.h>
+#include <ilc/misc/console_color.h>
 
 namespace ilc {
     std::string StackTraceFactory::createGutter(std::optional<uint32_t> lineNumber) {
@@ -28,7 +28,7 @@ namespace ilc {
             if (highlight) {
                 // Entire code should be highlighted gray by default.
                 // TODO: Actually use gray color.
-                line.text = ionir::ConsoleColor::white(line.text);
+                line.text = ConsoleColor::white(line.text);
 
                 // Apply syntax highlighting to the line's applicable token(s).
                 for (auto &token : line.tokens) {
@@ -99,7 +99,7 @@ namespace ilc {
          * applied formatting.
          */
         if (options.highlight) {
-            result << ionir::ConsoleColor::reset;
+            result << ConsoleColor::reset;
         }
 
         // Return the resulting stack trace string.

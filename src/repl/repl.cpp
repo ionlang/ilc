@@ -67,12 +67,12 @@ namespace ilc {
                 std::cout << token << std::endl;
             }
 
-            ionir::TokenStream *stream = new ionir::TokenStream(tokens);
+            ionir::TokenStream stream = ionir::TokenStream(tokens);
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                std::optional<ionir::Ptr<ionir::Construct>>
-                    construct = parser.parseTopLevel();
+                std::optional<ionir::Ptr < ionir::Construct>>
+                construct = parser.parseTopLevel();
 
                 // TODO: Improve if block?
                 if (construct.has_value()) {
@@ -82,7 +82,7 @@ namespace ilc {
                     std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
 
                     ionir::StackTrace stackTrace = parser.getStackTrace();
-                    ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(input, *stream);
+                    ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(input, stream);
 
                     std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(StackTraceOpts{
                         codeBacktrack,
@@ -97,9 +97,6 @@ namespace ilc {
                     else {
                         std::cout << "Could not create stack-trace" << std::endl;
                     }
-
-                    // TODO: Being repetitive.
-                    delete stream;
 
                     continue;
                 }
@@ -125,8 +122,6 @@ namespace ilc {
                 std::cout << "Parser: [Exception] " << exception.what() << std::endl;
                 this->tryThrow(exception);
             }
-
-            delete stream;
         }
     }
 
