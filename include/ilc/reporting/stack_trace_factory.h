@@ -8,6 +8,14 @@
 #include <ionir/lexical/token.h>
 
 namespace ilc {
+    struct StackTraceOpts {
+        ionir::CodeBacktrack codeBacktrack;
+
+        const ionir::StackTrace stackTrace;
+
+        bool highlight = true;
+    };
+
     class StackTraceFactory {
     public:
         static std::string createGutter(std::optional<uint32_t> lineNumber);
@@ -19,7 +27,6 @@ namespace ilc {
         static std::optional<std::string>
         makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight = true);
 
-        static std::optional<std::string>
-        makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace, bool highlight = true);
+        static std::optional<std::string> makeStackTrace(StackTraceOpts options);
     };
 }

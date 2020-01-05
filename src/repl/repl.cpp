@@ -84,11 +84,11 @@ namespace ilc {
                     ionir::StackTrace stackTrace = parser.getStackTrace();
                     ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(input, *stream);
 
-                    std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(
+                    std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(StackTraceOpts{
                         codeBacktrack,
                         stackTrace,
                         this->options.stackTraceHighlight
-                    );
+                    });
 
                     // TODO: Check for null ->make().
                     if (stackTraceResult.has_value()) {

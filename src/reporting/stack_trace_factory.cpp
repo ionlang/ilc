@@ -27,6 +27,7 @@ namespace ilc {
         for (auto &line : codeBlock) {
             if (highlight) {
                 // Entire code should be highlighted gray by default.
+                // TODO: Actually use gray color.
                 line.text = ionir::ConsoleColor::white(line.text);
 
                 // Apply syntax highlighting to the line's applicable token(s).
@@ -43,10 +44,10 @@ namespace ilc {
                      * insert coated text.
                      */
                     std::string firstHalf = line.text.substr(0, token.getStartPosition());
-                    std::string secondHalf = line.text.substr(token.getEndPosition());
+                    std::string secondHalf = line.text.substr(token.getEndPosition() - 1);
 
                     // Replace the line's text with the same, possibly highlighted text.
-                    line.text = firstHalf + secondHalf;
+                    line.text = firstHalf + highlightedText + secondHalf;
                 }
             }
 
@@ -56,28 +57,27 @@ namespace ilc {
         return result.str();
     }
 
-    std::optional<std::string>
-    StackTraceFactory::makeStackTrace(ionir::CodeBacktrack codeBacktrack, const ionir::StackTrace stackTrace,
-        bool highlight) {
-        if (stackTrace.empty()) {
+    std::optional<std::string> StackTraceFactory::makeStackTrace(StackTraceOpts options) {
+        if (options.stackTrace.empty()) {
             return std::nullopt;
         }
 
         std::stringstream result;
         bool prime = true;
 
-        for (const auto notice : stackTrace) {
+        for (const auto notice : options.stackTrace) {
             if (!prime) {
                 result << "\tat ";
             }
             else {
-                std::optional<ionir::CodeBlock> codeBlock = codeBacktrack.createCodeBlockNear(notice);
+                std::optional<ionir::CodeBlock> codeBlock = options.codeBacktrack.createCodeBlockNear(notice);
 
                 if (!codeBlock.has_value()) {
                     throw std::runtime_error("Unexpected code block to be null");
                 }
 
-                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock, highlight);
+                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock,
+                    options.highlight);
 
                 if (!codeBlockString.has_value()) {
                     throw std::runtime_error("Unexpected code block string to be null");
@@ -98,7 +98,7 @@ namespace ilc {
          * a reset instruction at the end to clear
          * applied formatting.
          */
-        if (highlight) {
+        if (options.highlight) {
             result << ionir::ConsoleColor::reset;
         }
 
