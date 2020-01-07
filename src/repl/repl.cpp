@@ -7,13 +7,15 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <ionir/llvm/codegen/llvm_visitor.h>
-#include <ionir/llvm/module.h>
+#include <ionir/llvm/llvm_module.h>
 #include <ionir/syntax/parser.h>
 #include <ionir/lexical/lexer.h>
 #include <ionir/misc/helpers.h>
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/reporting/stack_trace_factory.h>
+#include <ionir/passes/pass_manager.h>
+#include <ionir/passes/semantic_analysis.h>
 
 namespace ilc {
     Repl::Repl(Options options, ActionsProvider actionsProvider)
@@ -71,11 +73,12 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                std::optional<ionir::Ptr < ionir::Construct>>
-                construct = parser.parseTopLevel();
+                std::optional<ionir::Ptr<ionir::Construct>>
+                    construct = parser.parseTopLevel();
 
                 // TODO: Improve if block?
                 if (construct.has_value()) {
+                    // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                     std::cout << "--- Parser: " << (int)construct->get()->getConstructKind() << " ---" << std::endl;
                 }
                 else {
@@ -92,7 +95,7 @@ namespace ilc {
 
                     // TODO: Check for null ->make().
                     if (stackTraceResult.has_value()) {
-                        std::cout << *stackTraceResult;
+                        std::cout << std::endl << *stackTraceResult;
                     }
                     else {
                         std::cout << "Could not create stack-trace" << std::endl;
@@ -105,10 +108,34 @@ namespace ilc {
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
                     llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
                     ionir::LlvmVisitor visitor = ionir::LlvmVisitor(llvmModule);
-                    ionir::Module module = ionir::Module(visitor.getModule());
 
+                    // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
                     // Visit the parsed top-level construct.
                     visitor.visit(*construct);
+
+                    // TODO: Creating mock AST.
+                    ionir::Ast ast = {*construct};
+
+                    /**
+                     * Re-bind llvm module pointer after
+                     * visiting construct in case that a
+                     * module was visited.
+                     */
+                    llvmModule = visitor.getModule();
+
+                    ionir::LlvmModule module = ionir::LlvmModule(llvmModule);
+
+                    /**
+                     * Create a pass manager instance & run
+                     * applicable passes over the resulting AST.
+                     */
+                    ionir::PassManager passManager = ionir::PassManager();
+
+                    // Register all passes to be used by the pass manager.
+                    passManager.registerPass(std::make_shared<ionir::SemanticAnalysisPass>());
+
+                    // Execute the pass manager against the parser's resulting AST.
+                    passManager.run(ast);
 
                     std::cout << "--- LLVM code-generation ---" << std::endl;
                     module.print();

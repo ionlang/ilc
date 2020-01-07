@@ -76,8 +76,10 @@ namespace ilc {
                     throw std::runtime_error("Unexpected code block to be null");
                 }
 
-                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(*codeBlock,
-                    options.highlight);
+                std::optional<std::string> codeBlockString = StackTraceFactory::makeCodeBlock(
+                    *codeBlock,
+                    options.highlight
+                );
 
                 if (!codeBlockString.has_value()) {
                     throw std::runtime_error("Unexpected code block string to be null");

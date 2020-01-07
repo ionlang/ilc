@@ -4,20 +4,24 @@
 #include <queue>
 #include <CLI11/CLI11.hpp>
 #include <ionir/misc/static_init.h>
+#include <ionir/construct/type/void_type.h>
+#include <ionir/construct/prototype.h>
 #include <ilc/repl/repl.h>
 #include <ilc/cli/options.h>
-#include <ionir/construct/prototype.h>
 
 using namespace ilc;
 
 void setup(CLI::App &app, Options &options) {
-    // Register global options.
+    // Register global option(s).
     // TODO: Bind '--phase' option to a sub-command 'inspect'?
     app.add_option("-p,--phase", options.phase);
     app.add_option("-o,--out", options.out);
     app.add_option("-l,--stack-trace-highlight", options.stackTraceHighlight);
 
-    // Register global flags.
+    // Register pass option(s).
+    app.add_option("--pass-semantic", options.passSemantic);
+
+    // Register global flag(s).
     app.add_flag("-r,--ir", options.isIr);
 
     // Register sub-command: trace.
@@ -54,15 +58,15 @@ int main(int argc, char **argv) {
     }
     else if (app.get_subcommand(ILC_CLI_COMMAND_TRACE)->parsed()) {
         // TODO: Hard-coded debugging test.
-        auto args = std::make_shared<ionir::Args>();
-        auto returnType = std::make_shared<ionir::Type>("void");
-        auto prototype = std::make_shared<ionir::Prototype>("foobar", args, returnType);
+        ionir::Ptr<ionir::Args> args = std::make_shared<ionir::Args>();
+        ionir::Ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
+        ionir::Ptr<ionir::Prototype> prototype = std::make_shared<ionir::Prototype>("foobar", args, returnType);
         std::queue<ionir::Ptr<ionir::Construct>> childrenQueue = {};
 
         // Push initial child.
         childrenQueue.push(prototype->nativeCast());
 
-        // TODO: Some kind of depth counter?
+        // TODO: Some kind of depth counter? Currently not working exactly as intended.
 
         // Begin recursive children iteration.
         while (!childrenQueue.empty()) {

@@ -36,5 +36,12 @@ namespace ilc {
          * is IonIR.
          */
         bool isIr = false;
+
+        /**
+         * Whether to create and run the semantic
+         * analyzer pass against the parser's resulting
+         * AST.
+         */
+        bool passSemantic = true;
     };
 }
