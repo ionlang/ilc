@@ -32,7 +32,7 @@ namespace ilc {
         }
     }
 
-    class DummyPass : public ionir::Pass {
+    class LoggerPass : public ionir::Pass {
     public:
         void visit(ionir::Ptr<ionir::Construct> node) override {
             std::cout << "Visiting node: " << (int)node->getConstructKind() << std::endl;
@@ -146,8 +146,8 @@ namespace ilc {
                     ionir::PassManager passManager = ionir::PassManager();
 
                     // Register all passes to be used by the pass manager.
+                    passManager.registerPass(std::make_shared<LoggerPass>());
                     passManager.registerPass(std::make_shared<DirectiveProcessorPass>());
-                    passManager.registerPass(std::make_shared<DummyPass>());
                     passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
                     passManager.registerPass(std::make_shared<ionir::TypeCheckerPass>());
 
