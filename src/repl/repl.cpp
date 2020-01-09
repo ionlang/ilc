@@ -6,6 +6,10 @@
 #include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
+#include <ionir/passes/optimization/dead_code_elimination_pass.h>
+#include <ionir/passes/type_system/type_checker_pass.h>
+#include <ionir/passes/pass.h>
+#include <ionir/passes/pass_manager.h>
 #include <ionir/llvm/codegen/llvm_visitor.h>
 #include <ionir/llvm/llvm_module.h>
 #include <ionir/syntax/parser.h>
@@ -14,8 +18,7 @@
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/reporting/stack_trace_factory.h>
-#include <ionir/passes/pass_manager.h>
-#include <ionir/passes/semantic_analysis.h>
+#include <ilc/passes/directive_processor_pass.h>
 
 namespace ilc {
     Repl::Repl(Options options, ActionsProvider actionsProvider)
@@ -28,6 +31,15 @@ namespace ilc {
             throw exception;
         }
     }
+
+    class DummyPass : public ionir::Pass {
+    public:
+        void visit(ionir::Ptr<ionir::Construct> node) override {
+            std::cout << "Visiting node: " << (int)node->getConstructKind() << std::endl;
+
+            ionir::Pass::visit(node);
+        }
+    };
 
     void Repl::run() {
         std::string input;
@@ -114,7 +126,9 @@ namespace ilc {
                     visitor.visit(*construct);
 
                     // TODO: Creating mock AST.
-                    ionir::Ast ast = {*construct};
+                    ionir::Ast ast = {
+                        *construct
+                    };
 
                     /**
                      * Re-bind llvm module pointer after
@@ -132,7 +146,10 @@ namespace ilc {
                     ionir::PassManager passManager = ionir::PassManager();
 
                     // Register all passes to be used by the pass manager.
-                    passManager.registerPass(std::make_shared<ionir::SemanticAnalysisPass>());
+                    passManager.registerPass(std::make_shared<DirectiveProcessorPass>());
+                    passManager.registerPass(std::make_shared<DummyPass>());
+                    passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
+                    passManager.registerPass(std::make_shared<ionir::TypeCheckerPass>());
 
                     // Execute the pass manager against the parser's resulting AST.
                     passManager.run(ast);
