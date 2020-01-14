@@ -6,11 +6,11 @@
 #include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
+#include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
 #include <ionir/passes/type_system/type_checker_pass.h>
 #include <ionir/passes/pass.h>
 #include <ionir/passes/pass_manager.h>
-#include <ionir/llvm/codegen/llvm_visitor.h>
 #include <ionir/llvm/llvm_module.h>
 #include <ionir/syntax/parser.h>
 #include <ionir/lexical/lexer.h>
@@ -119,11 +119,11 @@ namespace ilc {
                 try {
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
                     llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
-                    ionir::LlvmVisitor visitor = ionir::LlvmVisitor(llvmModule);
+                    ionir::LlvmCodegenPass llvmCodegenPass = ionir::LlvmCodegenPass(llvmModule);
 
                     // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
                     // Visit the parsed top-level construct.
-                    visitor.visit(*construct);
+                    llvmCodegenPass.visit(*construct);
 
                     // TODO: Creating mock AST.
                     ionir::Ast ast = {
@@ -135,7 +135,7 @@ namespace ilc {
                      * visiting construct in case that a
                      * module was visited.
                      */
-                    llvmModule = visitor.getModule();
+                    llvmModule = llvmCodegenPass.getModule();
 
                     ionir::LlvmModule module = ionir::LlvmModule(llvmModule);
 

@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
             childrenQueue.pop();
 
             ionir::Ptr<ionir::Construct> child = childrenQueue.back();
-            ionir::Ast innerChildren = child->getChildrenNodes();
+            ionir::Ast innerChildren = child->getChildNodes();
 
             std::cout << "-- " << (int)child->getConstructKind();
 
