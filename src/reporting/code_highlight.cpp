@@ -1,6 +1,6 @@
 #include <sstream>
 #include <vector>
-#include <ionir/lexical/token_identifier.h>
+#include <ionir/lexical/classifier.h>
 #include <ilc/misc/console_color.h>
 #include <ilc/reporting/code_highlight.h>
 
@@ -10,16 +10,16 @@ namespace ilc {
         const ionir::TokenKind kind = token.getKind();
         const std::string value = token.getValue();
 
-        if (ionir::TokenIdentifier::isKeyword(kind)) {
+        if (ionir::Classifier::isKeyword(kind)) {
             return ConsoleColor::blue(value);
         }
         else if (kind == ionir::TokenKind::Identifier) {
             return ConsoleColor::green(value);
         }
-        else if (ionir::TokenIdentifier::isNumeric(kind)) {
+        else if (ionir::Classifier::isNumeric(kind)) {
             return ConsoleColor::magenta(value);
         }
-            // No coating should be applied to the provided token's value.
+        // No coating should be applied to the provided token's value.
         else {
             return value;
         }
