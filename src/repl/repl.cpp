@@ -8,6 +8,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
+#include <ionir/passes/semantic/entry_point_check_pass.h>
 #include <ionir/passes/pass.h>
 #include <ionir/passes/pass_manager.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
@@ -151,6 +152,7 @@ namespace ilc {
                     passManager.registerPass(std::make_shared<DirectiveProcessorPass>());
                     passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
                     passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+                    passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
 
                     // Execute the pass manager against the parser's resulting AST.
                     passManager.run(ast);
