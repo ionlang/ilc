@@ -9,6 +9,8 @@
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/semantic/entry_point_check_pass.h>
+#include <ionir/passes/semantic/name_resolution_pass.h>
+#include <ionir/passes/semantic/name_shadowing_pass.h>
 #include <ionir/passes/pass.h>
 #include <ionir/passes/pass_manager.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
@@ -86,7 +88,7 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                std::optional<ionir::Ptr<ionir::Construct>> construct = parser.parseTopLevel();
+                ionir::OptPtr<ionir::Construct> construct = parser.parseTopLevel();
 
                 // TODO: Improve if block?
                 if (construct.has_value()) {
@@ -117,6 +119,29 @@ namespace ilc {
                 }
 
                 try {
+                    // TODO: Creating mock AST.
+                    ionir::Ast ast = {
+                        *construct
+                    };
+
+                    /**
+                     * Create a pass manager instance & run applicable passes
+                     * over the resulting AST.
+                     */
+                    ionir::PassManager passManager = ionir::PassManager();
+
+                    // Register all passes to be used by the pass manager.
+                    passManager.registerPass(std::make_shared<LoggerPass>());
+                    passManager.registerPass(std::make_shared<DirectiveProcessorPass>());
+                    passManager.registerPass(std::make_shared<ionir::NameResolutionPass>());
+                    passManager.registerPass(std::make_shared<ionir::NameShadowingPass>());
+                    passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
+                    passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+                    passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
+
+                    // Execute the pass manager against the parser's resulting AST.
+                    passManager.run(ast);
+
                     llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
                     llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
 
@@ -127,35 +152,13 @@ namespace ilc {
                     // Visit the parsed top-level construct.
                     codegenPass.visit(*construct);
 
-                    // TODO: Creating mock AST.
-                    ionir::Ast ast = {
-                        *construct
-                    };
-
                     /**
-                     * Re-bind llvm module pointer after
-                     * visiting construct in case that a
-                     * module was visited.
+                     * Re-bind llvm module pointer after visiting construct
+                     * in case that a module was visited.
                      */
                     llvmModule = codegenPass.getModule();
 
                     ionir::LlvmModule module = ionir::LlvmModule(llvmModule);
-
-                    /**
-                     * Create a pass manager instance & run
-                     * applicable passes over the resulting AST.
-                     */
-                    ionir::PassManager passManager = ionir::PassManager();
-
-                    // Register all passes to be used by the pass manager.
-                    passManager.registerPass(std::make_shared<LoggerPass>());
-                    passManager.registerPass(std::make_shared<DirectiveProcessorPass>());
-                    passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
-                    passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
-                    passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
-
-                    // Execute the pass manager against the parser's resulting AST.
-                    passManager.run(ast);
 
                     std::cout << "--- LLVM code-generation ---" << std::endl;
                     module.print();
