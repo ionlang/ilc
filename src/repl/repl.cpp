@@ -137,7 +137,9 @@ namespace ilc {
                     passManager.registerPass(std::make_shared<ionir::NameShadowingPass>());
                     passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
                     passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
-                    passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
+
+                    // TODO: Disabled for REPL mode.
+                    //passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
 
                     // Execute the pass manager against the parser's resulting AST.
                     passManager.run(ast);
