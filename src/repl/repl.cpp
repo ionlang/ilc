@@ -136,7 +136,9 @@ namespace ilc {
                     passManager.registerPass(std::make_shared<ionir::NameResolutionPass>());
                     passManager.registerPass(std::make_shared<ionir::NameShadowingPass>());
                     passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
-                    passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+
+                    // TODO: Disabled until fix is issued for type-checking references on IonIR.
+                    //passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
 
                     // TODO: Disabled for REPL mode.
                     //passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
