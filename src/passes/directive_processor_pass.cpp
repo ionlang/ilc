@@ -1,5 +1,6 @@
 #include <ilc/passes/directive_processor_pass.h>
 #include <ilc/misc/file_system.h>
+#include <ilc/misc/util.h>
 
 namespace ilc {
     DirectiveProcessorPass::DirectiveProcessorPass(OptPtr<std::stringstream> includeOutputStream) : includeOutputStream(includeOutputStream) {
@@ -23,8 +24,10 @@ namespace ilc {
                     throw std::runtime_error("Could not read file contents of provided include path. Path may not exist or be inaccessible.");
                 }
 
-                // Send the file contents through the provided output stream.
-                this->includeOutputStream << *fileContents;
+                // Send the file contents through the provided output stream if applicable.
+                if (Util::hasValue(this->includeOutputStream)) {
+                    **this->includeOutputStream << *fileContents;
+                }
             }
             else if (directiveName == "define") {
                 // TODO: Implement.
