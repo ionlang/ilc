@@ -150,22 +150,24 @@ namespace ilc {
                     llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
 
                     // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-                    ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass(llvmModule);
+                    ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass(ionir::SymbolTable<llvm::Module *>({
+                        {Const::appName, llvmModule}
+                    }));
+
+                    codegenPass.setModuleBuffer(Const::appName);
 
                     // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
                     // Visit the parsed top-level construct.
                     codegenPass.visit(*construct);
 
-                    /**
-                     * Re-bind llvm module pointer after visiting construct
-                     * in case that a module was visited.
-                     */
-                    llvmModule = codegenPass.getModule();
+                    std::map<std::string, llvm::Module *> modules = codegenPass.getModules().unwrap();
 
-                    ionir::LlvmModule module = ionir::LlvmModule(llvmModule);
+                    // Display the resulting code of all the modules.
+                    for (const auto &[key, value] : modules) {
+                        std::cout << "--- LLVM code-generation: " << key << " ---" << std::endl;
+                        ionir::LlvmModule(value).print();
+                    }
 
-                    std::cout << "--- LLVM code-generation ---" << std::endl;
-                    module.print();
                 }
                 catch (std::exception &exception) {
                     std::cout << "LLVM code-generation: [Exception] " << exception.what() << std::endl;
