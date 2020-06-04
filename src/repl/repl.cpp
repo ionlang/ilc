@@ -146,21 +146,26 @@ namespace ilc {
                     // Execute the pass manager against the parser's resulting AST.
                     passManager.run(ast);
 
-                    llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
-                    llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
-
                     // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-                    ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass(ionir::SymbolTable<llvm::Module *>({
-                        {Const::appName, llvmModule}
-                    }));
+                    ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass();
 
-                    codegenPass.setModuleBuffer(Const::appName);
+                    /**
+                     * The parsed top-level construct was not a module. Create an empty
+                     * module on the code-generation pass, and set it as the buffer.
+                     */
+                    if (construct->get()->getConstructKind() != ionir::ConstructKind::Module) {
+                        llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
+                        llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
+
+                        codegenPass.getModules()->insert(Const::appName, llvmModule);
+                        codegenPass.setModuleBuffer(Const::appName);
+                    }
 
                     // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
                     // Visit the parsed top-level construct.
                     codegenPass.visit(*construct);
 
-                    std::map<std::string, llvm::Module *> modules = codegenPass.getModules().unwrap();
+                    std::map<std::string, llvm::Module *> modules = codegenPass.getModules()->unwrap();
 
                     // Display the resulting code of all the modules.
                     for (const auto &[key, value] : modules) {
