@@ -173,6 +173,9 @@ namespace ilc {
                         ionir::LlvmModule(value).print();
                     }
 
+                    if (modules.empty()) {
+                        std::cout << "--- LLVM code-generation contained no modules ---" << std::endl;
+                    }
                 }
                 catch (std::exception &exception) {
                     std::cout << "LLVM code-generation: [Exception] " << exception.what() << std::endl;
