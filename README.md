@@ -43,3 +43,11 @@ $ ilc input.ion --out output.ix
 Informs the compiler that the input source code provided is IonIR.
 
 *More information pending.*
+
+#### Common problems
+
+* *Imported target "ionir::ionir" includes non-existent path "/ionir"*
+
+1. Delete all installation directories (from both `Program Files` and `Program Files (x86)` of `ionir`).
+2. Re-install the `ionir` project.
+3. Reload the project.

@@ -18,6 +18,7 @@
 #include <ionir/syntax/parser.h>
 #include <ionir/lexical/lexer.h>
 #include <ionir/misc/helpers.h>
+#include <ionir/const/const.h>
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/reporting/stack_trace_factory.h>
@@ -38,7 +39,8 @@ namespace ilc {
     class LoggerPass : public ionir::Pass {
     public:
         void visit(ionir::Ptr<ionir::Construct> node) override {
-            std::cout << "Visiting node: " << (int)node->getConstructKind() << std::endl;
+            std::optional<std::string> constructName = ionir::Const::getConstructKindName(node->getConstructKind());
+            std::cout << "Visiting node: " << constructName.value_or("Unknown") << std::endl;
 
             ionir::Pass::visit(node);
         }
