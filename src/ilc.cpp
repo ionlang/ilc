@@ -7,7 +7,6 @@
 #include <ionir/construct/type/void_type.h>
 #include <ionir/construct/prototype.h>
 #include <ilc/repl/repl.h>
-#include <ilc/cli/options.h>
 
 using namespace ilc;
 
@@ -58,11 +57,13 @@ int main(int argc, char **argv) {
     }
     else if (app.get_subcommand(ILC_CLI_COMMAND_TRACE)->parsed()) {
         // TODO: Hard-coded debugging test.
-        ionir::Ptr <ionir::Args> args = std::make_shared<ionir::Args>();
-        ionir::Ptr <ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
-        ionir::Ptr <ionir::Prototype> prototype = std::make_shared<ionir::Prototype>("foobar", args, returnType);
-        std::queue<ionir::Ptr < ionir::Construct>>
-        childrenQueue = {};
+        ionshared::Ptr<ionir::Args> args = std::make_shared<ionir::Args>();
+        ionshared::Ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
+
+        // TODO: Module is nullptr.
+        ionshared::Ptr<ionir::Prototype> prototype = std::make_shared<ionir::Prototype>("foobar", args, returnType, nullptr);
+
+        std::queue<ionshared::Ptr<ionir::Construct>> childrenQueue = {};
 
         // Push initial child.
         childrenQueue.push(prototype->nativeCast());
@@ -73,7 +74,7 @@ int main(int argc, char **argv) {
         while (!childrenQueue.empty()) {
             childrenQueue.pop();
 
-            ionir::Ptr <ionir::Construct> child = childrenQueue.back();
+            ionshared::Ptr<ionir::Construct> child = childrenQueue.back();
             ionir::Ast innerChildren = child->getChildNodes();
 
             std::cout << "-- " << (int)child->getConstructKind();

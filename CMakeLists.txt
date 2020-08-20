@@ -14,6 +14,7 @@ set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Scan dependencies.
 find_package(ionir REQUIRED)
+find_package(ionshared REQUIRED)
 find_package(CLI11 CONFIG)
 
 # Options.
@@ -46,7 +47,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-# Specify that this project is a library.
+# Specify that this project is an executable.
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 llvm_map_components_to_libnames(llvm_libs all)

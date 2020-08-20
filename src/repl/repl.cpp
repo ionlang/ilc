@@ -39,8 +39,9 @@ namespace ilc {
     class LoggerPass : public ionir::Pass {
     public:
         void visit(ionir::Ptr<ionir::Construct> node) override {
-            std::optional<std::string> constructName = ionir::Const::getConstructKindName(node->getConstructKind());
-            std::cout << "Visiting node: " << constructName.value_or("Unknown") << std::endl;
+            ionir::ConstructKind constructKind = node->getConstructKind();
+            std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
+            std::cout << "Visiting node: " << constructName.value_or("Unknown (" + std::to_string((int)constructKind) + ")") << std::endl;
 
             ionir::Pass::visit(node);
         }
@@ -90,15 +91,15 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                ionir::OptPtr<ionir::Construct> construct = parser.parseTopLevel();
+                ionir::OptPtr<ionir::Module> module = parser.parseModule();
 
                 // TODO: Improve if block?
-                if (construct.has_value()) {
+                if (ionir::Util::hasValue(module)) {
                     // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
-                    std::cout << "--- Parser: " << (int)construct->get()->getConstructKind() << " ---" << std::endl;
+                    std::cout << "--- Parser ---" << std::endl;
                 }
                 else {
-                    std::cout << "Parser: [Exception] Could not parse top-level construct" << std::endl;
+                    std::cout << "Parser: [Exception] Could not parse module" << std::endl;
 
                     ionir::StackTrace stackTrace = parser.getStackTrace();
                     ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(input, stream);
@@ -123,7 +124,7 @@ namespace ilc {
                 try {
                     // TODO: Creating mock AST.
                     ionir::Ast ast = {
-                        *construct
+                        *module
                     };
 
                     /**
@@ -151,21 +152,9 @@ namespace ilc {
                     // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
                     ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass();
 
-                    /**
-                     * The parsed top-level construct was not a module. Create an empty
-                     * module on the code-generation pass, and set it as the buffer.
-                     */
-                    if (construct->get()->getConstructKind() != ionir::ConstructKind::Module) {
-                        llvm::LLVMContext *llvmContext = new llvm::LLVMContext();
-                        llvm::Module *llvmModule = new llvm::Module(Const::appName, *llvmContext);
-
-                        codegenPass.getModules()->insert(Const::appName, llvmModule);
-                        codegenPass.setModuleBuffer(Const::appName);
-                    }
-
                     // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
-                    // Visit the parsed top-level construct.
-                    codegenPass.visit(*construct);
+                    // Visit the parsed module construct.
+                    codegenPass.visitModule(*module);
 
                     std::map<std::string, llvm::Module *> modules = codegenPass.getModules()->unwrap();
 

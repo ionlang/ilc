@@ -96,9 +96,8 @@ namespace ilc {
         }
 
         /**
-         * Finally, if highlight was specified, append
-         * a reset instruction at the end to clear
-         * applied formatting.
+         * Finally, if highlight was specified, append a reset
+         * instruction at the end to clear applied formatting.
          */
         if (options.highlight) {
             result << ConsoleColor::reset;
