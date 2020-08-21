@@ -39,9 +39,8 @@ namespace ilc {
                     std::string highlightedText = CodeHighlight::coat(token);
 
                     /**
-                     * Split the line's text into two halves,
-                     * excluding the token's value, in order to
-                     * insert coated text.
+                     * Split the line's text into two halves, excluding the token's
+                     * value, in order to insert coated text.
                      */
                     std::string firstHalf = line.text.substr(0, token.getStartPosition());
                     std::string secondHalf = line.text.substr(token.getEndPosition() - 1);
@@ -65,7 +64,7 @@ namespace ilc {
         std::stringstream result;
         bool prime = true;
 
-        for (const auto notice : options.stackTrace) {
+        for (const auto &notice : options.stackTrace) {
             if (!prime) {
                 result << "\tat ";
             }
@@ -96,8 +95,8 @@ namespace ilc {
         }
 
         /**
-         * Finally, if highlight was specified, append a reset
-         * instruction at the end to clear applied formatting.
+         * Finally, if highlight was specified, append a reset instruction
+         * at the end to clear applied formatting.
          */
         if (options.highlight) {
             result << ConsoleColor::reset;

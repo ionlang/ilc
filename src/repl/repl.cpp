@@ -38,7 +38,7 @@ namespace ilc {
 
     class LoggerPass : public ionir::Pass {
     public:
-        void visit(ionir::Ptr<ionir::Construct> node) override {
+        void visit(ionshared::Ptr<ionir::Construct> node) override {
             ionir::ConstructKind constructKind = node->getConstructKind();
             std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
             std::cout << "Visiting node: " << constructName.value_or("Unknown (" + std::to_string((int)constructKind) + ")") << std::endl;
@@ -91,10 +91,10 @@ namespace ilc {
             ionir::Parser parser = ionir::Parser(stream);
 
             try {
-                ionir::OptPtr<ionir::Module> module = parser.parseModule();
+                ionir::AstPtrResult<ionir::Module> moduleResult = parser.parseModule();
 
                 // TODO: Improve if block?
-                if (ionir::Util::hasValue(module)) {
+                if (ionir::Util::hasValue(moduleResult)) {
                     // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                     std::cout << "--- Parser ---" << std::endl;
                 }
@@ -122,9 +122,11 @@ namespace ilc {
                 }
 
                 try {
+                    ionshared::Ptr<ionir::Module> module = ionir::Util::getResultValue(moduleResult);
+
                     // TODO: Creating mock AST.
                     ionir::Ast ast = {
-                        *module
+                        module
                     };
 
                     /**
@@ -154,7 +156,7 @@ namespace ilc {
 
                     // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
                     // Visit the parsed module construct.
-                    codegenPass.visitModule(*module);
+                    codegenPass.visitModule(module);
 
                     std::map<std::string, llvm::Module *> modules = codegenPass.getModules()->unwrap();
 
