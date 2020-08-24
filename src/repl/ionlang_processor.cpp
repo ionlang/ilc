@@ -1,9 +1,11 @@
 #include <ionshared/error_handling/notice.h>
 #include <ionshared/llvm/llvm_module.h>
+#include <ionlang/error_handling/code_backtrack.h>
+#include <ionlang/passes/codegen/ionir_codegen_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
+#include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ilc/repl/ionlang_processor.h>
-#include <ilc/reporting/stack_trace_factory.h>
 
 namespace ilc {
     std::vector<ionlang::Token> IonLangProcessor::lex() {
@@ -19,7 +21,7 @@ namespace ilc {
         return tokens;
     }
 
-    void IonLangProcessor::parse(std::vector<ionlang::Token> tokens) {
+    ionshared::Ptr<ionlang::Module> IonLangProcessor::parse(std::vector<ionlang::Token> tokens) {
         ionlang::TokenStream stream = ionlang::TokenStream(tokens);
         ionlang::Parser parser = ionlang::Parser(stream);
 
@@ -34,32 +36,37 @@ namespace ilc {
             else {
                 std::cout << "Parser: [Exception] Could not parse module" << std::endl;
 
-                ionshared::Ptr<ionshared::NoticeStack> noticeStack = parser.getNoticeStack();
-                ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(this->getInput(), stream);
+                ionshared::Ptr<ionshared::NoticeStack> noticeStack = parser.getNoticeSentinel()->getNoticeStack();
+                ionlang::CodeBacktrack codeBacktrack = ionlang::CodeBacktrack(this->getInput(), stream);
 
-                std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(StackTraceOpts{
-                    codeBacktrack,
-                    noticeStack,
-                    this->getOptions().stackTraceHighlight
-                });
+                // TODO: Not showing stack trace until implemented.
+                std::cout << "! Skipping stack trace because it's not yet implemented !" << std::endl;
+//                std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(IonIrStackTraceOpts{
+//                    codeBacktrack,
+//                    noticeStack,
+//                    this->getOptions().stackTraceHighlight
+//                });
+//
+//                // TODO: Check for null ->make().
+//                if (stackTraceResult.has_value()) {
+//                    std::cout << std::endl << *stackTraceResult;
+//                }
+//                else {
+//                    std::cout << "Could not create stack-trace" << std::endl;
+//                }
 
-                // TODO: Check for null ->make().
-                if (stackTraceResult.has_value()) {
-                    std::cout << std::endl << *stackTraceResult;
-                }
-                else {
-                    std::cout << "Could not create stack-trace" << std::endl;
-                }
-
-                return;
+                // TODO: Cannot return null.
+//                return;
             }
 
-            this->codegen(*moduleResult);
+            return *moduleResult;
         }
         catch (std::exception &exception) {
             std::cout << "Parser: [Exception] " << exception.what() << std::endl;
             this->tryThrow(exception);
         }
+
+        throw std::runtime_error("!! DEBUGGING POINT: NEEDS RETURN !!");
     }
 
     void IonLangProcessor::codegen(ionshared::Ptr<ionlang::Module> module) {
@@ -83,13 +90,25 @@ namespace ilc {
             passManager.run(ast);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-            ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass();
+            ionlang::IonIrCodegenPass codegenPass = ionlang::IonIrCodegenPass();
 
             // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
             // Visit the parsed module construct.
             codegenPass.visitModule(module);
 
-            std::map<std::string, llvm::Module *> modules = codegenPass.getModules()->unwrap();
+            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = codegenPass.getModuleBuffer();
+
+            if (!ionshared::Util::hasValue(ionIrModuleBuffer)) {
+                throw std::runtime_error("Module is nullptr");
+            }
+
+            // Now, make the ionir::LlvmCodegenPass.
+            ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass();
+
+            // Visit the resulting IonIR module buffer from the IonLang codegen pass.
+            ionIrLlvmCodegenPass.visitModule(*ionIrModuleBuffer);
+
+            std::map<std::string, llvm::Module *> modules = ionIrLlvmCodegenPass.getModules()->unwrap();
 
             // Display the resulting code of all the modules.
             for (const auto &[key, value] : modules) {
@@ -113,7 +132,9 @@ namespace ilc {
     }
 
     void IonLangProcessor::run() {
-        // TODO: Implement.
-        throw std::runtime_error("Not implemented");
+        std::vector<ionlang::Token> tokens = this->lex();
+        ionshared::Ptr<ionlang::Module> module = this->parse(tokens);
+
+        this->codegen(module);
     }
 }

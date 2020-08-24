@@ -17,8 +17,7 @@ namespace ilc {
         return StackTraceFactory::createLine(line.text, line.lineNumber);
     }
 
-    std::optional<std::string>
-    StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight) {
+    std::optional<std::string> StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight) {
         if (codeBlock.empty()) {
             return std::nullopt;
         }
@@ -57,7 +56,7 @@ namespace ilc {
         return result.str();
     }
 
-    std::optional<std::string> StackTraceFactory::makeStackTrace(StackTraceOpts options) {
+    std::optional<std::string> StackTraceFactory::makeStackTrace(IonIrStackTraceOpts options) {
         if (options.noticeStack->isEmpty()) {
             return std::nullopt;
         }

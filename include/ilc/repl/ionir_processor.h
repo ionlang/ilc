@@ -11,7 +11,7 @@ namespace ilc {
     private:
         std::vector<ionir::Token> lex();
 
-        void parse(std::vector<ionir::Token> tokens);
+        ionshared::Ptr<ionir::Module> parse(std::vector<ionir::Token> tokens);
 
         void codegen(ionshared::Ptr<ionir::Module> ast);
 

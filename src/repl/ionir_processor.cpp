@@ -24,7 +24,7 @@ namespace ilc {
         return tokens;
     }
 
-    void IonIrProcessor::parse(std::vector<ionir::Token> tokens) {
+    ionshared::Ptr<ionir::Module> IonIrProcessor::parse(std::vector<ionir::Token> tokens) {
         ionir::TokenStream stream = ionir::TokenStream(tokens);
         ionir::Parser parser = ionir::Parser(stream);
 
@@ -42,10 +42,10 @@ namespace ilc {
                 ionshared::Ptr<ionshared::NoticeStack> noticeStack = parser.getNoticeStack();
                 ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(this->getInput(), stream);
 
-                std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(StackTraceOpts{
-                    codeBacktrack,
+                std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(IonIrStackTraceOpts{
                     noticeStack,
-                    this->getOptions().stackTraceHighlight
+                    this->getOptions().stackTraceHighlight,
+                    codeBacktrack
                 });
 
                 // TODO: Check for null ->make().
@@ -56,17 +56,21 @@ namespace ilc {
                     std::cout << "Could not create stack-trace" << std::endl;
                 }
 
-                return;
+                // TODO: Cannot return empty. Throw for now to satisfy return.
+                throw std::runtime_error("!!! DEBUGGING POINT !!!");
+//                return;
             }
 
             ionshared::Ptr<ionir::Module> module = ionir::Util::getResultValue(moduleResult);
 
-            this->codegen(ionir::Util::getResultValue(moduleResult));
+            return ionir::Util::getResultValue(moduleResult);
         }
         catch (std::exception &exception) {
             std::cout << "Parser: [Exception] " << exception.what() << std::endl;
             this->tryThrow(exception);
         }
+
+        throw std::runtime_error("!! DEBUGGING POINT: NEEDS RETURN !!");
     }
 
     void IonIrProcessor::codegen(ionshared::Ptr<ionir::Module> module) {
@@ -130,6 +134,8 @@ namespace ilc {
 
     void IonIrProcessor::run() {
         std::vector<ionir::Token> tokens = this->lex();
-        this->parse(tokens);
+        ionshared::Ptr<ionir::Module> module = this->parse(tokens);
+
+        this->codegen(module);
     }
 }

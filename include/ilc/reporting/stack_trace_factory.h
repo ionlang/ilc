@@ -4,16 +4,24 @@
 #include <optional>
 #include <string>
 #include <ionshared/error_handling/notice.h>
+#include <ionlang/error_handling/code_backtrack.h>
 #include <ionir/error_handling/code_backtrack.h>
 #include <ionir/lexical/token.h>
 
 namespace ilc {
-    struct StackTraceOpts {
-        ionir::CodeBacktrack codeBacktrack;
-
+    struct StackTraceBaseOpts {
         const ionshared::Ptr<ionshared::NoticeStack> noticeStack;
 
         bool highlight = true;
+    };
+
+    struct IonIrStackTraceOpts : public StackTraceBaseOpts {
+        ionir::CodeBacktrack codeBacktrack;
+    };
+
+    // TODO: Make use of it.
+    struct IonLangStackTraceOpts : public StackTraceBaseOpts {
+        ionlang::CodeBacktrack codeBacktrack;
     };
 
     class StackTraceFactory {
@@ -29,6 +37,6 @@ namespace ilc {
             bool highlight = true
         );
 
-        static std::optional<std::string> makeStackTrace(StackTraceOpts options);
+        static std::optional<std::string> makeStackTrace(IonIrStackTraceOpts options);
     };
 }

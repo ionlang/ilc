@@ -1,5 +1,3 @@
-#include <sstream>
-#include <vector>
 #include <ionir/lexical/classifier.h>
 #include <ilc/misc/console_color.h>
 #include <ilc/reporting/code_highlight.h>
