@@ -5,6 +5,7 @@
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
+#include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/repl/ionlang_processor.h>
 
 namespace ilc {
@@ -84,7 +85,7 @@ namespace ilc {
 
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
-//            passManager.registerPass(std::make_shared<IonIrLoggerPass>());
+            passManager.registerPass(std::make_shared<IonLangLoggerPass>());
 
             // Execute the pass manager against the parser's resulting AST.
             passManager.run(ast);
