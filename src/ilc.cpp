@@ -4,6 +4,7 @@
 #include <queue>
 #include <CLI11/CLI11.hpp>
 #include <ionir/misc/static_init.h>
+#include <ionlang/misc/static_init.h>
 #include <ionir/construct/type/void_type.h>
 #include <ionir/construct/prototype.h>
 #include <ilc/repl/repl.h>
@@ -41,8 +42,9 @@ int main(int argc, char **argv) {
     // Parse arguments.
     CLI11_PARSE(app, argc, argv);
 
-    // Invoke IonIR's static initialization.
+    // Invoke static initialization of dependencies.
     ionir::StaticInit::init();
+    ionlang::StaticInit::init();
 
     if (app.get_subcommand(ILC_CLI_COMMAND_REPL)->parsed()) {
         // TODO: Handle '--ir' flag in REPL mode.
