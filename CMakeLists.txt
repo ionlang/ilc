@@ -15,6 +15,7 @@ set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 # Scan dependencies.
 find_package(ionir REQUIRED)
 find_package(ionshared REQUIRED)
+find_package(ionlang REQUIRED)
 find_package(CLI11 CONFIG)
 
 # Options.
@@ -57,6 +58,9 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE LLVM)
 
 # Link against libionir.
 target_link_libraries("${PROJECT_NAME}" PRIVATE ionir::ionir)
+
+# Link against libionlang.
+target_link_libraries("${PROJECT_NAME}" PRIVATE ionlang::ionlang)
 
 # Provide include directories to be used in the build command. Position in file matters.
 target_include_directories(${PROJECT_NAME} PUBLIC "src" "include" "libs")

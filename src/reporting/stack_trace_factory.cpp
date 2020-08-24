@@ -1,4 +1,5 @@
 #include <sstream>
+#include <ionshared/error_handling/notice.h>
 #include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/reporting/code_highlight.h>
 #include <ilc/misc/console_color.h>
@@ -57,14 +58,22 @@ namespace ilc {
     }
 
     std::optional<std::string> StackTraceFactory::makeStackTrace(StackTraceOpts options) {
-        if (options.stackTrace.empty()) {
+        if (options.noticeStack->isEmpty()) {
             return std::nullopt;
         }
 
         std::stringstream result;
         bool prime = true;
 
-        for (const auto &notice : options.stackTrace) {
+        // TODO: Verify it's actually copied (debug and inspect).
+        // Stack is copied upon assignment operator usage.
+        std::stack<ionshared::Notice> notices = options.noticeStack->unwrap();
+
+        while (!notices.empty()) {
+            notices.pop();
+
+            ionshared::Notice notice = notices.top();
+
             if (!prime) {
                 result << "\tat ";
             }

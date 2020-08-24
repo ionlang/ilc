@@ -3,15 +3,15 @@
 #include <vector>
 #include <optional>
 #include <string>
-#include <ionir/reporting/notice.h>
-#include <ionir/reporting/code_backtrack.h>
+#include <ionshared/error_handling/notice.h>
+#include <ionir/error_handling/code_backtrack.h>
 #include <ionir/lexical/token.h>
 
 namespace ilc {
     struct StackTraceOpts {
         ionir::CodeBacktrack codeBacktrack;
 
-        const ionir::StackTrace stackTrace;
+        const ionshared::Ptr<ionshared::NoticeStack> noticeStack;
 
         bool highlight = true;
     };
@@ -24,8 +24,10 @@ namespace ilc {
 
         static std::string createLine(ionir::CodeBlockLine line);
 
-        static std::optional<std::string>
-        makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight = true);
+        static std::optional<std::string> makeCodeBlock(
+            std::vector<ionir::CodeBlockLine> codeBlock,
+            bool highlight = true
+        );
 
         static std::optional<std::string> makeStackTrace(StackTraceOpts options);
     };

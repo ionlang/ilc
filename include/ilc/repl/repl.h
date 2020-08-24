@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <exception>
 #include <map>
 #include <ilc/misc/helpers.h>
@@ -8,15 +9,16 @@
 
 namespace ilc {
     class Repl {
-    protected:
+    private:
         Options options;
 
         ActionsProvider actionsProvider;
 
-        void tryThrow(std::exception exception);
-
     public:
-        explicit Repl(Options options, ActionsProvider actionsProvider = ActionsProvider());
+        explicit Repl(
+            Options options,
+            ActionsProvider actionsProvider = ActionsProvider()
+        );
 
         void run();
 

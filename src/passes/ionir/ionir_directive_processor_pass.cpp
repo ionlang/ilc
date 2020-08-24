@@ -1,13 +1,13 @@
-#include <ilc/passes/directive_processor_pass.h>
+#include <ilc/passes/ionir/ionir_directive_processor_pass.h>
 #include <ilc/misc/file_system.h>
 #include <ilc/misc/util.h>
 
 namespace ilc {
-    DirectiveProcessorPass::DirectiveProcessorPass(OptPtr<std::stringstream> includeOutputStream) : includeOutputStream(includeOutputStream) {
+    IonIrDirectiveProcessorPass::IonIrDirectiveProcessorPass(OptPtr<std::stringstream> includeOutputStream) : includeOutputStream(includeOutputStream) {
         //
     }
 
-    void DirectiveProcessorPass::visitDirective(ionir::Directive node) {
+    void IonIrDirectiveProcessorPass::visitDirective(ionir::Directive node) {
         std::string directiveName = node.first;
 
         if (node.second.has_value()) {
