@@ -6,7 +6,8 @@ namespace ilc {
         ionlang::ConstructKind constructKind = node->getConstructKind();
         std::optional<std::string> constructName = ionlang::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
-        std::cout << "Visiting node: " << constructName.value_or(defaultName) << std::endl;
+        std::string addressString = " [" + ionshared::Util::getPointerAddressString(node.get()) + "]";
+        std::cout << "Visiting node: " << constructName.value_or(defaultName) << addressString << std::endl;
 
         ionlang::Pass::visit(node);
     }
