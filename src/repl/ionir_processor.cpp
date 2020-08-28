@@ -32,7 +32,7 @@ namespace ilc {
             ionir::AstPtrResult<ionir::Module> moduleResult = parser.parseModule();
 
             // TODO: Improve if block?
-            if (ionir::Util::hasValue(moduleResult)) {
+            if (ionir::util::hasValue(moduleResult)) {
                 // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                 std::cout << "--- Parser ---" << std::endl;
             }
@@ -61,9 +61,9 @@ namespace ilc {
 //                return;
             }
 
-            ionshared::Ptr<ionir::Module> module = ionir::Util::getResultValue(moduleResult);
+            ionshared::Ptr<ionir::Module> module = ionir::util::getResultValue(moduleResult);
 
-            return ionir::Util::getResultValue(moduleResult);
+            return ionir::util::getResultValue(moduleResult);
         }
         catch (std::exception &exception) {
             std::cout << "Parser: [Exception] " << exception.what() << std::endl;
@@ -127,8 +127,8 @@ namespace ilc {
         }
     }
 
-    IonIrProcessor::IonIrProcessor(Options options, std::string input)
-        : ReplProcessor(options, input) {
+    IonIrProcessor::IonIrProcessor(Options options, std::string input) :
+        ReplProcessor(options, input) {
         //
     }
 
