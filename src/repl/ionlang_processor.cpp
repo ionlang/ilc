@@ -30,7 +30,7 @@ namespace ilc {
             ionshared::OptPtr<ionlang::Module> moduleResult = parser.parseModule();
 
             // TODO: Improve if block?
-            if (ionshared::Util::hasValue(moduleResult)) {
+            if (ionshared::util::hasValue(moduleResult)) {
                 // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                 std::cout << "--- Parser ---" << std::endl;
             }
@@ -99,7 +99,7 @@ namespace ilc {
 
             ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = codegenPass.getModuleBuffer();
 
-            if (!ionshared::Util::hasValue(ionIrModuleBuffer)) {
+            if (!ionshared::util::hasValue(ionIrModuleBuffer)) {
                 throw std::runtime_error("Module is nullptr");
             }
 

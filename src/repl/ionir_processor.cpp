@@ -4,11 +4,12 @@
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ionir/passes/semantic/name_resolution_pass.h>
 #include <ionir/passes/semantic/name_shadowing_pass.h>
+#include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
-#include <ilc/repl/ionir_processor.h>
-#include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
 #include <ilc/passes/ionir/ionir_directive_processor_pass.h>
+#include <ilc/reporting/stack_trace_factory.h>
+#include <ilc/repl/ionir_processor.h>
 
 namespace ilc {
     std::vector<ionir::Token> IonIrProcessor::lex() {
@@ -25,8 +26,8 @@ namespace ilc {
     }
 
     ionshared::Ptr<ionir::Module> IonIrProcessor::parse(std::vector<ionir::Token> tokens) {
-        ionir::TokenStream stream = ionir::TokenStream(tokens);
-        ionir::Parser parser = ionir::Parser(stream);
+        ionshared::Ptr<ionir::TokenStream> tokenStream = std::make_shared<ionir::TokenStream>(tokens);
+        ionir::Parser parser = ionir::Parser(tokenStream);
 
         try {
             ionir::AstPtrResult<ionir::Module> moduleResult = parser.parseModule();
@@ -40,7 +41,9 @@ namespace ilc {
                 std::cout << "Parser: [Exception] Could not parse module" << std::endl;
 
                 ionshared::Ptr<ionshared::NoticeStack> noticeStack = parser.getNoticeStack();
-                ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(this->getInput(), stream);
+
+                // TODO: De-referencing token stream. However, if it was a reference, then it would maintain it's index... Figure it out.
+                ionir::CodeBacktrack codeBacktrack = ionir::CodeBacktrack(this->getInput(), *tokenStream);
 
                 std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(IonIrStackTraceOpts{
                     noticeStack,
@@ -92,9 +95,7 @@ namespace ilc {
             passManager.registerPass(std::make_shared<ionir::NameResolutionPass>());
             passManager.registerPass(std::make_shared<ionir::NameShadowingPass>());
             passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
-
-            // TODO: Disabled until fix is issued for type-checking references on IonIR.
-            //passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+            passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
 
             // TODO: Disabled for REPL mode.
             //passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
