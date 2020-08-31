@@ -15,8 +15,9 @@
 #include <ilc/repl/ionlang_processor.h>
 
 namespace ilc {
-    Repl::Repl(Options options, ActionsProvider actionsProvider)
-        : options(options), actionsProvider(actionsProvider) {
+    Repl::Repl(Options options, ActionsProvider actionsProvider) :
+        options(options),
+        actionsProvider(actionsProvider) {
         //
     }
 
@@ -29,8 +30,13 @@ namespace ilc {
             std::cout << ILC_CLI_REPL_PROMPT;
             std::getline(std::cin, input);
 
+            // TODO: Trim whitespace then compare.
+            // No input. Continue prompt.
+            if (input.length() == 0) {
+                continue;
+            }
             // Check actions provider against input if applicable.
-            if (input.length() > 0 && input[0] == ILC_CLI_REPL_ACTION_PREFIX) {
+            else if (input[0] == ILC_CLI_REPL_ACTION_PREFIX) {
                 std::string actionName = input.substr(1);
 
                 if (this->actionsProvider.contains(actionName)) {
