@@ -9,14 +9,10 @@
 namespace ilc {
     class IonIrProcessor : public ReplProcessor {
     private:
-        std::vector<ionir::Token> lex();
-
-        ionshared::Ptr<ionir::Module> parse(std::vector<ionir::Token> tokens);
-
-        void codegen(ionshared::Ptr<ionir::Module> ast);
+        ionshared::Ptr<ionir::Module> module;
 
     public:
-        IonIrProcessor(Options options, std::string input);
+        IonIrProcessor(Options options, ionshared::Ptr<ionir::Module> module);
 
         void run() override;
     };

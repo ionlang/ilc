@@ -4,11 +4,7 @@
 #include <optional>
 #include <iostream>
 #include <ionshared/llvm/llvm_module.h>
-#include <ionir/passes/optimization/dead_code_elimination_pass.h>
-#include <ionir/passes/semantic/name_resolution_pass.h>
-#include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ionir/syntax/parser.h>
-#include <ilc/passes/ionir/ionir_directive_processor_pass.h>
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/repl/ionir_processor.h>
@@ -23,7 +19,13 @@ namespace ilc {
 
     void Repl::run() {
         std::string input;
-        IonIrProcessor ionIrProcessor = IonIrProcessor(this->options, input);
+
+        // TODO: Finish critical implementation below.
+        throw std::runtime_error("Implementation not finished");
+
+        // TODO: CRITICAL! Need to pass in module.
+        IonIrProcessor ionIrProcessor = IonIrProcessor(this->options, nullptr);
+
         IonLangProcessor ionLangProcessor = IonLangProcessor(this->options, input);
 
         while (true) {

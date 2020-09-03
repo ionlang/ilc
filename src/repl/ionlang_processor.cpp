@@ -1,7 +1,7 @@
 #include <ionshared/error_handling/notice.h>
 #include <ionshared/llvm/llvm_module.h>
 #include <ionlang/error_handling/code_backtrack.h>
-#include <ionlang/passes/codegen/ionir_codegen_pass.h>
+#include <ionlang/passes/lowering/ionir_lowering_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
@@ -27,10 +27,10 @@ namespace ilc {
         ionlang::Parser parser = ionlang::Parser(stream);
 
         try {
-            ionshared::OptPtr<ionlang::Module> moduleResult = parser.parseModule();
+            ionlang::AstPtrResult<ionlang::Module> moduleResult = parser.parseModule();
 
             // TODO: Improve if block?
-            if (ionshared::util::hasValue(moduleResult)) {
+            if (ionlang::util::hasValue(moduleResult)) {
                 // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                 std::cout << "--- Parser ---" << std::endl;
             }
@@ -60,7 +60,7 @@ namespace ilc {
 //                return;
             }
 
-            return *moduleResult;
+            return ionlang::util::getResultValue(moduleResult);
         }
         catch (std::exception &exception) {
             std::cout << "Parser: [Exception] " << exception.what() << std::endl;
@@ -91,13 +91,13 @@ namespace ilc {
             passManager.run(ast);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-            ionlang::IonIrCodegenPass codegenPass = ionlang::IonIrCodegenPass();
+            ionlang::IonIrLoweringPass ionIrLoweringPass = ionlang::IonIrLoweringPass();
 
             // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
             // Visit the parsed module construct.
-            codegenPass.visitModule(module);
+            ionIrLoweringPass.visitModule(module);
 
-            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = codegenPass.getModuleBuffer();
+            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = ionIrLoweringPass.getModuleBuffer();
 
             if (!ionshared::util::hasValue(ionIrModuleBuffer)) {
                 throw std::runtime_error("Module is nullptr");
@@ -127,8 +127,8 @@ namespace ilc {
         }
     }
 
-    IonLangProcessor::IonLangProcessor(Options options, std::string input)
-        : ReplProcessor(options, input) {
+    IonLangProcessor::IonLangProcessor(Options options, std::string input) :
+        ReplProcessor(options, input) {
         //
     }
 
