@@ -5,8 +5,7 @@
 #include <string>
 #include <ionshared/error_handling/notice.h>
 #include <ionlang/error_handling/code_backtrack.h>
-#include <ionir/error_handling/code_backtrack.h>
-#include <ionir/lexical/token.h>
+#include <ionlang/lexical/token.h>
 
 namespace ilc {
     struct StackTraceBaseOpts {
@@ -16,7 +15,7 @@ namespace ilc {
     };
 
     struct IonIrStackTraceOpts : public StackTraceBaseOpts {
-        ionir::CodeBacktrack codeBacktrack;
+        ionlang::CodeBacktrack codeBacktrack;
     };
 
     // TODO: Make use of it.
@@ -30,10 +29,10 @@ namespace ilc {
 
         static std::string createLine(std::string text, std::optional<uint32_t> lineNumber);
 
-        static std::string createLine(ionir::CodeBlockLine line);
+        static std::string createLine(ionlang::CodeBlockLine line);
 
         static std::optional<std::string> makeCodeBlock(
-            std::vector<ionir::CodeBlockLine> codeBlock,
+            std::vector<ionlang::CodeBlockLine> codeBlock,
             bool highlight = true
         );
 

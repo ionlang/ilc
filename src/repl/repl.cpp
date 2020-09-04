@@ -20,9 +20,6 @@ namespace ilc {
     void Repl::run() {
         std::string input;
 
-        // TODO: Finish critical implementation below.
-        throw std::runtime_error("Implementation not finished");
-
         // TODO: CRITICAL! Need to pass in module.
         IonIrProcessor ionIrProcessor = IonIrProcessor(this->options, nullptr);
 
@@ -61,14 +58,8 @@ namespace ilc {
             std::cout << "--- Input: " << " (" << input.length() << " character(s)) ---" << std::endl;
             std::cout << input << std::endl;
 
-            if (this->options.isIr) {
-                ionIrProcessor.setInput(input);
-                ionIrProcessor.run();
-            }
-            else {
-                ionLangProcessor.setInput(input);
-                ionLangProcessor.run();
-            }
+            ionLangProcessor.setInput(input);
+            ionLangProcessor.run();
         }
     }
 

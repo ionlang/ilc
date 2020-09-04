@@ -13,11 +13,11 @@ namespace ilc {
         return "\t" + StackTraceFactory::createGutter(lineNumber) + text + "\n";
     }
 
-    std::string StackTraceFactory::createLine(ionir::CodeBlockLine line) {
+    std::string StackTraceFactory::createLine(ionlang::CodeBlockLine line) {
         return StackTraceFactory::createLine(line.text, line.lineNumber);
     }
 
-    std::optional<std::string> StackTraceFactory::makeCodeBlock(std::vector<ionir::CodeBlockLine> codeBlock, bool highlight) {
+    std::optional<std::string> StackTraceFactory::makeCodeBlock(std::vector<ionlang::CodeBlockLine> codeBlock, bool highlight) {
         if (codeBlock.empty()) {
             return std::nullopt;
         }
@@ -77,7 +77,7 @@ namespace ilc {
                 result << "\tat ";
             }
             else {
-                std::optional<ionir::CodeBlock> codeBlock = options.codeBacktrack.createCodeBlockNear(notice);
+                std::optional<ionlang::CodeBlock> codeBlock = options.codeBacktrack.createCodeBlockNear(notice);
 
                 if (!codeBlock.has_value()) {
                     throw std::runtime_error("Unexpected code block to be null");

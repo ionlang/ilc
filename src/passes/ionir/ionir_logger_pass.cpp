@@ -1,3 +1,4 @@
+#include <iostream>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
 #include <ionir/const/const.h>
 

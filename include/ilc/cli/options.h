@@ -32,12 +32,6 @@ namespace ilc {
         bool replThrow = false;
 
         /**
-         * Whether the input language being processed
-         * is IonIR.
-         */
-        bool isIr = false;
-
-        /**
          * Whether to create and run the semantic
          * analyzer pass against the parser's resulting
          * AST.

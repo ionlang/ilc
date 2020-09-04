@@ -20,9 +20,6 @@ void setup(CLI::App &app, Options &options) {
     // Register pass option(s).
     app.add_option("--pass-semantic", options.passSemantic);
 
-    // Register global flag(s).
-    app.add_flag("-r,--ir", options.isIr);
-
     // Register sub-command: trace.
     CLI::App *trace = app.add_subcommand(ILC_CLI_COMMAND_TRACE, "Trace resulting abstract syntax tree (AST)");
 

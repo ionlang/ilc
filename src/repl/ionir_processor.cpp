@@ -8,7 +8,6 @@
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
 #include <ilc/passes/ionir/ionir_directive_processor_pass.h>
-#include <ilc/reporting/stack_trace_factory.h>
 #include <ilc/repl/ionir_processor.h>
 
 namespace ilc {

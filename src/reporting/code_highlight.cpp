@@ -1,20 +1,20 @@
-#include <ionir/lexical/classifier.h>
+#include <ionlang/lexical/classifier.h>
 #include <ilc/misc/console_color.h>
 #include <ilc/reporting/code_highlight.h>
 
 namespace ilc {
-    std::string CodeHighlight::coat(ionir::Token token) {
+    std::string CodeHighlight::coat(ionlang::Token token) {
         // Abstract the token's kind & value to avoid repetition.
-        const ionir::TokenKind kind = token.getKind();
+        const ionlang::TokenKind kind = token.getKind();
         const std::string value = token.getValue();
 
-        if (ionir::Classifier::isKeyword(kind)) {
+        if (ionlang::Classifier::isKeyword(kind)) {
             return ConsoleColor::blue(value);
         }
-        else if (kind == ionir::TokenKind::Identifier) {
+        else if (kind == ionlang::TokenKind::Identifier) {
             return ConsoleColor::green(value);
         }
-        else if (ionir::Classifier::isNumeric(kind)) {
+        else if (ionlang::Classifier::isNumeric(kind)) {
             return ConsoleColor::magenta(value);
         }
         // No coating should be applied to the provided token's value.
