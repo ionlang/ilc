@@ -1,10 +1,15 @@
 #include <ionshared/error_handling/notice.h>
 #include <ionshared/llvm/llvm_module.h>
+#include <ionir/passes/codegen/llvm_codegen_pass.h>
+#include <ionir/passes/type_system/type_check_pass.h>
+#include <ionir/passes/type_system/borrow_check_pass.h>
+#include <ionir/passes/semantic/entry_point_check_pass.h>
 #include <ionlang/error_handling/code_backtrack.h>
 #include <ionlang/passes/lowering/ionir_lowering_pass.h>
+#include <ionlang/passes/semantic/macro_expansion_pass.h>
+#include <ionlang/passes/semantic/name_resolution_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
-#include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/repl/ionlang_processor.h>
 
@@ -73,7 +78,7 @@ namespace ilc {
     void IonLangProcessor::codegen(ionshared::Ptr<ionlang::Module> module) {
         try {
             // TODO: Creating mock AST?
-            ionlang::Ast ast = {
+            ionlang::Ast ionLangAst = {
                 module
             };
 
@@ -81,14 +86,16 @@ namespace ilc {
              * Create a pass manager instance & run applicable passes
              * over the resulting AST.
              */
-            ionlang::PassManager passManager = ionlang::PassManager();
+            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
 
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
-            passManager.registerPass(std::make_shared<IonLangLoggerPass>());
+            ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>());
+            ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>());
+            ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>());
 
             // Execute the pass manager against the parser's resulting AST.
-            passManager.run(ast);
+            ionLangPassManager.run(ionLangAst);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
             ionlang::IonIrLoweringPass ionIrLoweringPass = ionlang::IonIrLoweringPass();
@@ -102,6 +109,23 @@ namespace ilc {
             if (!ionshared::util::hasValue(ionIrModuleBuffer)) {
                 throw std::runtime_error("Module is nullptr");
             }
+
+            ionir::Ast ionIrAst = {
+                *ionIrModuleBuffer
+            };
+
+            ionir::PassManager ionirPassManager = ionir::PassManager();
+
+            // Register passes.
+            ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
+            ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+            ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>());
+
+            // Run the pass manager on the IonIR AST.
+            ionirPassManager.run(ionIrAst);
+
+            // TODO: Where should optimization passes occur? Before or after type-checking?
+//            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
             ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass();

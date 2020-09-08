@@ -3,7 +3,9 @@
 #include <ilc/misc/util.h>
 
 namespace ilc {
-    IonIrDirectiveProcessorPass::IonIrDirectiveProcessorPass(OptPtr<std::stringstream> includeOutputStream) : includeOutputStream(includeOutputStream) {
+    IonIrDirectiveProcessorPass::IonIrDirectiveProcessorPass(OptPtr<std::stringstream> includeOutputStream) :
+        ionir::Pass(ionir::PassContext(nullptr)), // TODO: Passing nullptr temporarily.
+        includeOutputStream(includeOutputStream) {
         //
     }
 

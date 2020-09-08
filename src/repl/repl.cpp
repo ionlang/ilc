@@ -4,7 +4,6 @@
 #include <optional>
 #include <iostream>
 #include <ionshared/llvm/llvm_module.h>
-#include <ionir/syntax/parser.h>
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/repl/ionir_processor.h>

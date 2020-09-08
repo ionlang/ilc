@@ -2,7 +2,6 @@
 
 #include <string>
 #include <ionshared/misc/helpers.h>
-#include <ionir/lexical/lexer.h>
 #include <ionir/construct/module.h>
 #include "repl_processor.h"
 

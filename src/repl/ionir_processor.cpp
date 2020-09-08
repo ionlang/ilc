@@ -1,11 +1,9 @@
 #include <ionshared/llvm/llvm_module.h>
-#include <ionlang/passes/semantic/name_resolution_pass.h>
-#include <ionlang/misc/util.h>
-#include <ionir/syntax/parser.h>
-#include <ionir/error_handling/code_backtrack.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/optimization/dead_code_elimination_pass.h>
+#include <ionlang/passes/semantic/name_resolution_pass.h>
+#include <ionlang/misc/util.h>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
 #include <ilc/passes/ionir/ionir_directive_processor_pass.h>
 #include <ilc/repl/ionir_processor.h>

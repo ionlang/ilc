@@ -9,6 +9,7 @@ namespace ilc {
         std::string addressString = " [" + ionshared::util::getPointerAddressString(node.get()) + "]";
         std::cout << "Visiting node: " << constructName.value_or(defaultName) << addressString << std::endl;
 
-        ionlang::Pass::visit(node);
+        // TODO: Causing weak_ptr from this->shared_from_this() error.
+//        ionlang::Pass::visit(node);
     }
 }

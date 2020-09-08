@@ -3,6 +3,12 @@
 #include <ionir/const/const.h>
 
 namespace ilc {
+    IonIrLoggerPass::IonIrLoggerPass() :
+        // TODO: Temporarily passing nullptr.
+        ionir::Pass(ionir::PassContext(nullptr)) {
+        //
+    }
+
     void IonIrLoggerPass::visit(ionshared::Ptr<ionir::Construct> node) {
         ionir::ConstructKind constructKind = node->getConstructKind();
         std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
