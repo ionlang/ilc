@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12.4)
 project(ilc VERSION 1.0.0 LANGUAGES CXX)
 
 # Setup compiler flag(s) & standard(s).
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # General project information.
 set(PROJECT_URL "https://github.com/ionlang/ilc")
