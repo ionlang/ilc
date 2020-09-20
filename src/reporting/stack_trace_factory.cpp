@@ -57,7 +57,7 @@ namespace ilc {
     }
 
     std::optional<std::string> StackTraceFactory::makeStackTrace(IonIrStackTraceOpts options) {
-        if (options.noticeStack->isEmpty()) {
+        if (options.diagnosticStack->isEmpty()) {
             return std::nullopt;
         }
 
@@ -66,18 +66,19 @@ namespace ilc {
 
         // TODO: Verify it's actually copied (debug and inspect).
         // Stack is copied upon assignment operator usage.
-        std::stack<ionshared::Notice> notices = options.noticeStack->unwrap();
+        std::stack<ionshared::Diagnostic> diagnostics = options.diagnosticStack->unwrap();
 
-        while (!notices.empty()) {
-            notices.pop();
+        while (!diagnostics.empty()) {
+            diagnostics.pop();
 
-            ionshared::Notice notice = notices.top();
+            ionshared::Diagnostic diagnostic = diagnostics.top();
 
             if (!prime) {
                 result << "\tat ";
             }
             else {
-                std::optional<ionlang::CodeBlock> codeBlock = options.codeBacktrack.createCodeBlockNear(notice);
+                std::optional<ionlang::CodeBlock> codeBlock =
+                    options.codeBacktrack.createCodeBlockNear(diagnostic);
 
                 if (!codeBlock.has_value()) {
                     throw std::runtime_error("Unexpected code block to be null");
@@ -96,7 +97,7 @@ namespace ilc {
             }
 
             // Append the notice's individual trace to the stack trace.
-            result << notice.createTrace() << std::endl;
+            result << ionshared::DiagnosticBuilder::createTrace(diagnostic) << std::endl;
 
             // Raise the prime flag to take effect upon next iteration.
             prime = false;

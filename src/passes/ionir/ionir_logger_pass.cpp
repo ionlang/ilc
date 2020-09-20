@@ -3,9 +3,10 @@
 #include <ionir/const/const.h>
 
 namespace ilc {
-    IonIrLoggerPass::IonIrLoggerPass() :
-        // TODO: Temporarily passing nullptr.
-        ionir::Pass(ionir::PassContext(nullptr)) {
+    IonIrLoggerPass::IonIrLoggerPass(
+        ionshared::Ptr<ionshared::PassContext> context
+    ) :
+        ionir::Pass(std::move(context)) {
         //
     }
 

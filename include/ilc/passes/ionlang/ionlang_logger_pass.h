@@ -5,6 +5,12 @@
 namespace ilc {
     class IonLangLoggerPass : public ionlang::Pass {
     public:
+        IONSHARED_PASS_ID;
+
+        explicit IonLangLoggerPass(
+            ionshared::Ptr<ionshared::PassContext> context
+        );
+
         void visit(ionshared::Ptr<ionlang::Construct> node) override;
     };
 }

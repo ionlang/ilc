@@ -1,6 +1,3 @@
-#define ILC_CLI_COMMAND_TRACE "trace"
-#define ILC_CLI_COMMAND_REPL "repl"
-
 #include <queue>
 #include <CLI11/CLI11.hpp>
 #include <ionlang/misc/static_init.h>
@@ -8,9 +5,20 @@
 #include <ionir/construct/prototype.h>
 #include <ilc/repl/repl.h>
 
+#define ILC_CLI_COMMAND_TRACE "trace"
+#define ILC_CLI_COMMAND_REPL "repl"
+#define ILC_CLI_COMMAND_VERSION "version"
+#define ILC_CLI_VERSION "1.0.0"
+
 using namespace ilc;
 
 void setup(CLI::App &app, Options &options) {
+    std::vector<std::string> inputFiles = {};
+
+    auto versionCommand = app.add_subcommand(std::string("--") + ILC_CLI_COMMAND_VERSION, "Display the program's version");
+
+    app.add_option("files", inputFiles, "Input files to process");
+
     // Register global option(s).
     // TODO: Bind '--phase' option to a sub-command 'inspect'?
     app.add_option("-p,--phase", options.phase);
@@ -23,10 +31,8 @@ void setup(CLI::App &app, Options &options) {
     // Register sub-command: trace.
     CLI::App *trace = app.add_subcommand(ILC_CLI_COMMAND_TRACE, "Trace resulting abstract syntax tree (AST)");
 
-    // Register sub-command: repl.
-    CLI::App *repl = app.add_subcommand(ILC_CLI_COMMAND_REPL, "Use interactive mode");
-
-    repl->add_flag("-t,--repl-throw", options.replThrow);
+    app.add_flag("-r,--repl", options.repl);
+    app.add_flag("-t,--repl-throw", options.replThrow);
 }
 
 int main(int argc, char **argv) {
@@ -41,7 +47,7 @@ int main(int argc, char **argv) {
     // Invoke static initialization of dependencies.
     ionlang::static_init::init();
 
-    if (app.get_subcommand(ILC_CLI_COMMAND_REPL)->parsed()) {
+    if (options.repl) {
         // TODO: Handle '--ir' flag in REPL mode.
         Repl repl = Repl(options);
 
@@ -51,6 +57,9 @@ int main(int argc, char **argv) {
         // Inform the user of REPL mode, and begin the input loop.
         std::cout << "Entering REPL mode. Type ':quit' to exit." << std::endl;
         repl.run();
+    }
+    else if (app.get_subcommand(ILC_CLI_COMMAND_VERSION)) {
+        std::cout << "v" << ILC_CLI_VERSION << std::endl;
     }
     else if (app.get_subcommand(ILC_CLI_COMMAND_TRACE)->parsed()) {
         // TODO: Hard-coded debugging test.

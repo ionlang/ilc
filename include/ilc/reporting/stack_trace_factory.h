@@ -9,7 +9,7 @@
 
 namespace ilc {
     struct StackTraceBaseOpts {
-        const ionshared::Ptr<ionshared::NoticeStack> noticeStack;
+        const ionshared::Ptr<ionshared::DiagnosticStack> diagnosticStack;
 
         bool highlight = true;
     };

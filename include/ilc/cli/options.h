@@ -25,6 +25,8 @@ namespace ilc {
          */
         bool stackTraceHighlight = true;
 
+        bool repl = false;
+
         /**
          * Whether to throw exceptions caught within
          * REPL mode.

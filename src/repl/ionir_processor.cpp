@@ -32,15 +32,16 @@ namespace ilc {
              */
             ionir::PassManager passManager = ionir::PassManager();
 
+            ionshared::Ptr<ionshared::PassContext> passContext =
+                std::make_shared<ionshared::PassContext>();
+
+            // TODO: Process diagnostics.
+
             // Register all passes to be used by the pass manager.
-            passManager.registerPass(std::make_shared<IonIrLoggerPass>());
-            passManager.registerPass(std::make_shared<IonIrDirectiveProcessorPass>());
-
-            // TODO
-            //            passManager.registerPass(std::make_shared<ionir::NameResolutionPass>());
-
-            passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
-            passManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
+            passManager.registerPass(std::make_shared<IonIrLoggerPass>(passContext));
+            passManager.registerPass(std::make_shared<IonIrDirectiveProcessorPass>(passContext));
+            passManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>(passContext));
+            passManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
 
             // TODO: Disabled for REPL mode.
             //passManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
@@ -49,7 +50,7 @@ namespace ilc {
             passManager.run(ast);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-            ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass();
+            ionir::LlvmCodegenPass codegenPass = ionir::LlvmCodegenPass(passContext);
 
             // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
             // Visit the parsed module construct.

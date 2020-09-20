@@ -42,7 +42,7 @@ namespace ilc {
             else {
                 std::cout << "Parser: [Exception] Could not parse module" << std::endl;
 
-                ionshared::Ptr<ionshared::NoticeStack> noticeStack = parser.getNoticeSentinel()->getNoticeStack();
+                ionshared::Ptr<ionshared::DiagnosticStack> diagnosticStack = parser.getDiagnosticBuilder()->getDiagnosticStack();
                 ionlang::CodeBacktrack codeBacktrack = ionlang::CodeBacktrack(this->getInput(), stream);
 
                 // TODO: Not showing stack trace until implemented.
@@ -88,17 +88,20 @@ namespace ilc {
              */
             ionlang::PassManager ionLangPassManager = ionlang::PassManager();
 
+            ionshared::Ptr<ionshared::PassContext> passContext =
+                std::make_shared<ionshared::PassContext>();
+
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
-            ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>());
-            ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>());
-            ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>());
+            ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>(passContext));
+            ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>(passContext));
+            ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>(passContext));
 
             // Execute the pass manager against the parser's resulting AST.
             ionLangPassManager.run(ionLangAst);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-            ionlang::IonIrLoweringPass ionIrLoweringPass = ionlang::IonIrLoweringPass();
+            ionlang::IonIrLoweringPass ionIrLoweringPass = ionlang::IonIrLoweringPass(passContext);
 
             // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
             // Visit the parsed module construct.
@@ -117,9 +120,9 @@ namespace ilc {
             ionir::PassManager ionirPassManager = ionir::PassManager();
 
             // Register passes.
-            ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>());
-            ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>());
-            ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>());
+            ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>(passContext));
+            ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
+            ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>(passContext));
 
             // Run the pass manager on the IonIR AST.
             ionirPassManager.run(ionIrAst);
@@ -128,7 +131,7 @@ namespace ilc {
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
-            ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass();
+            ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass(passContext);
 
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
             ionIrLlvmCodegenPass.visitModule(*ionIrModuleBuffer);
