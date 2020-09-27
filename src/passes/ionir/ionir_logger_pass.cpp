@@ -11,7 +11,7 @@ namespace ilc {
     }
 
     void IonIrLoggerPass::visit(ionshared::Ptr<ionir::Construct> node) {
-        ionir::ConstructKind constructKind = node->getConstructKind();
+        ionir::ConstructKind constructKind = node->constructKind;
         std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
         std::string addressString = " [" + ionshared::util::getPointerAddressString(node.get()) + "]";

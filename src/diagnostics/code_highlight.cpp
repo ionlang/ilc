@@ -1,12 +1,12 @@
 #include <ionlang/lexical/classifier.h>
-#include <ilc/misc/console_color.h>
-#include <ilc/reporting/code_highlight.h>
+#include <ilc/cli/console_color.h>
+#include <ilc/diagnostics/code_highlight.h>
 
 namespace ilc {
     std::string CodeHighlight::coat(ionlang::Token token) {
         // Abstract the token's kind & value to avoid repetition.
-        const ionlang::TokenKind kind = token.getKind();
-        const std::string value = token.getValue();
+        const ionlang::TokenKind kind = token.kind;
+        const std::string value = token.value;
 
         if (ionlang::Classifier::isKeyword(kind)) {
             return ConsoleColor::blue(value);

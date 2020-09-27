@@ -17,6 +17,34 @@ void setup(CLI::App &app, Options &options) {
 
     auto versionCommand = app.add_subcommand(std::string("--") + ILC_CLI_COMMAND_VERSION, "Display the program's version");
 
+    app.add_option("--passes", [&](std::vector<std::string> passes) {
+        if (!passes.empty()) {
+            options.passes.clear();
+        }
+
+        for (const auto &pass : passes) {
+            if (pass == "type-check") {
+                options.passes.insert(PassKind::TypeChecking);
+            }
+            else if (pass == "name-resolution") {
+                options.passes.insert(PassKind::NameResolution);
+            }
+            else if (pass == "macro-expansion") {
+                options.passes.insert(PassKind::MacroExpansion);
+            }
+            else if (pass == "borrow-check") {
+                options.passes.insert(PassKind::BorrowCheck);
+            }
+            else {
+                std::cout << "Unknown pass '" << pass << "'" << std::endl;
+
+                return false;
+            }
+        }
+
+        return true;
+    });
+
     app.add_option("files", inputFiles, "Input files to process");
 
     // Register global option(s).
@@ -24,9 +52,6 @@ void setup(CLI::App &app, Options &options) {
     app.add_option("-p,--phase", options.phase);
     app.add_option("-o,--out", options.out);
     app.add_option("-l,--stack-trace-highlight", options.stackTraceHighlight);
-
-    // Register pass option(s).
-    app.add_option("--pass-semantic", options.passSemantic);
 
     // Register sub-command: trace.
     CLI::App *trace = app.add_subcommand(ILC_CLI_COMMAND_TRACE, "Trace resulting abstract syntax tree (AST)");
@@ -81,9 +106,9 @@ int main(int argc, char **argv) {
             childrenQueue.pop();
 
             ionshared::Ptr<ionir::Construct> child = childrenQueue.back();
-            ionir::Ast innerChildren = child->getChildNodes();
+            ionir::Ast innerChildren = child->getChildrenNodes();
 
-            std::cout << "-- " << (int)child->getConstructKind();
+            std::cout << "-- " << (int)child->constructKind;
 
             // Queue inner children if applicable.
             if (!innerChildren.empty()) {

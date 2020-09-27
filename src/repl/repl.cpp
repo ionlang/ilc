@@ -7,7 +7,7 @@
 #include <ilc/misc/const.h>
 #include <ilc/repl/repl.h>
 #include <ilc/repl/ionir_processor.h>
-#include <ilc/repl/ionlang_processor.h>
+#include <ilc/repl/processor.h>
 
 namespace ilc {
     Repl::Repl(Options options, ActionsProvider actionsProvider) :
@@ -18,14 +18,11 @@ namespace ilc {
 
     void Repl::run() {
         std::string input;
-
-        // TODO: CRITICAL! Need to pass in module.
-        IonIrProcessor ionIrProcessor = IonIrProcessor(this->options, nullptr);
-
-        IonLangProcessor ionLangProcessor = IonLangProcessor(this->options, input);
+        IonLangProcessor processor = IonLangProcessor(this->options, input);
 
         while (true) {
             std::cout << ILC_CLI_REPL_PROMPT;
+            std::cout.flush();
             std::getline(std::cin, input);
 
             // TODO: Trim whitespace then compare.
@@ -54,11 +51,14 @@ namespace ilc {
                 continue;
             }
 
-            std::cout << "--- Input: " << " (" << input.length() << " character(s)) ---" << std::endl;
-            std::cout << input << std::endl;
+            std::cout << "--- Input: ("
+                << input.length()
+                << " character(s)) ---\n"
+                << input
+                << std::endl;
 
-            ionLangProcessor.setInput(input);
-            ionLangProcessor.run();
+            processor.input = input;
+            processor.run();
         }
     }
 

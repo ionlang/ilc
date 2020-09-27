@@ -1,4 +1,4 @@
-#include <ilc/misc/console_color.h>
+#include <ilc/cli/console_color.h>
 
 namespace ilc {
     const std::string ConsoleColor::reset = ConsoleColor::make((uint32_t)ConsoleSpecial::Reset);

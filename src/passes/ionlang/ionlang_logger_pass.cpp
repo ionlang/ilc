@@ -10,7 +10,7 @@ namespace ilc {
     }
 
     void IonLangLoggerPass::visit(ionshared::Ptr<ionlang::Construct> node) {
-        ionlang::ConstructKind constructKind = node->getConstructKind();
+        ionlang::ConstructKind constructKind = node->constructKind;
         std::optional<std::string> constructName = ionlang::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
         std::string addressString = " [" + ionshared::util::getPointerAddressString(node.get()) + "]";

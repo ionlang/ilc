@@ -1,21 +1,21 @@
-#include <ionshared/error_handling/notice.h>
+#include <ionshared/diagnostics/diagnostic.h>
 #include <ionshared/llvm/llvm_module.h>
 #include <ionir/passes/codegen/llvm_codegen_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/type_system/borrow_check_pass.h>
 #include <ionir/passes/semantic/entry_point_check_pass.h>
-#include <ionlang/error_handling/code_backtrack.h>
 #include <ionlang/passes/lowering/ionir_lowering_pass.h>
 #include <ionlang/passes/semantic/macro_expansion_pass.h>
 #include <ionlang/passes/semantic/name_resolution_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
-#include <ilc/repl/ionlang_processor.h>
+#include <ilc/diagnostics/diagnostic_printer.h>
+#include <ilc/repl/processor.h>
 
 namespace ilc {
     std::vector<ionlang::Token> IonLangProcessor::lex() {
-        ionlang::Lexer lexer = ionlang::Lexer(this->getInput());
+        ionlang::Lexer lexer = ionlang::Lexer(this->input);
         std::vector<ionlang::Token> tokens = lexer.scan();
 
         std::cout << "--- Lexer: " << tokens.size() << " token(s) ---" << std::endl;
@@ -27,9 +27,18 @@ namespace ilc {
         return tokens;
     }
 
-    ionshared::Ptr<ionlang::Module> IonLangProcessor::parse(std::vector<ionlang::Token> tokens) {
-        ionlang::TokenStream stream = ionlang::TokenStream(tokens);
-        ionlang::Parser parser = ionlang::Parser(stream);
+    ionshared::OptPtr<ionlang::Module> IonLangProcessor::parse(
+        std::vector<ionlang::Token> tokens,
+        ionshared::Ptr<DiagnosticVector> diagnostics
+    ) {
+        ionlang::TokenStream tokenStream = ionlang::TokenStream(tokens);
+
+        ionlang::Parser parser = ionlang::Parser(
+            tokenStream,
+            std::make_shared<ionshared::DiagnosticBuilder>(diagnostics)
+        );
+
+        this->tokenStream = tokenStream;
 
         try {
             ionlang::AstPtrResult<ionlang::Module> moduleResult = parser.parseModule();
@@ -38,44 +47,41 @@ namespace ilc {
             if (ionlang::util::hasValue(moduleResult)) {
                 // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
                 std::cout << "--- Parser ---" << std::endl;
+
+                return ionlang::util::getResultValue(moduleResult);
+            }
+
+            std::cout << "Parser: [Exception] Could not parse module" << std::endl;
+
+            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+                this->input,
+                tokenStream
+            });
+
+            DiagnosticPrinterResult printResult =
+                diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
+
+            // TODO: Check for null ->make().
+            if (printResult.first.has_value()) {
+                std::cout << *printResult.first;
+                std::cout.flush();
             }
             else {
-                std::cout << "Parser: [Exception] Could not parse module" << std::endl;
-
-                ionshared::Ptr<ionshared::DiagnosticStack> diagnosticStack = parser.getDiagnosticBuilder()->getDiagnosticStack();
-                ionlang::CodeBacktrack codeBacktrack = ionlang::CodeBacktrack(this->getInput(), stream);
-
-                // TODO: Not showing stack trace until implemented.
-                std::cout << "! Skipping stack trace because it's not yet implemented !" << std::endl;
-//                std::optional<std::string> stackTraceResult = StackTraceFactory::makeStackTrace(IonIrStackTraceOpts{
-//                    codeBacktrack,
-//                    noticeStack,
-//                    this->getOptions().stackTraceHighlight
-//                });
-//
-//                // TODO: Check for null ->make().
-//                if (stackTraceResult.has_value()) {
-//                    std::cout << std::endl << *stackTraceResult;
-//                }
-//                else {
-//                    std::cout << "Could not create stack-trace" << std::endl;
-//                }
-
-                // TODO: Cannot return null.
-//                return;
+                std::cout << "Could not create stack-trace" << std::endl;
             }
-
-            return ionlang::util::getResultValue(moduleResult);
         }
         catch (std::exception &exception) {
             std::cout << "Parser: [Exception] " << exception.what() << std::endl;
             this->tryThrow(exception);
         }
 
-        throw std::runtime_error("!! DEBUGGING POINT: NEEDS RETURN !!");
+        return std::nullopt;
     }
 
-    void IonLangProcessor::codegen(ionshared::Ptr<ionlang::Module> module) {
+    void IonLangProcessor::codegen(
+        ionshared::Ptr<ionlang::Module> module,
+        ionshared::Ptr<DiagnosticVector> diagnostics
+    ) {
         try {
             // TODO: Creating mock AST?
             ionlang::Ast ionLangAst = {
@@ -89,13 +95,21 @@ namespace ilc {
             ionlang::PassManager ionLangPassManager = ionlang::PassManager();
 
             ionshared::Ptr<ionshared::PassContext> passContext =
-                std::make_shared<ionshared::PassContext>();
+                std::make_shared<ionshared::PassContext>(diagnostics);
 
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
-            ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>(passContext));
-            ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>(passContext));
-            ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>(passContext));
+            if (this->options.passes.contains(PassKind::IonLangLogger)) {
+                ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>(passContext));
+            }
+
+            if (this->options.passes.contains(PassKind::MacroExpansion)) {
+                ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>(passContext));
+            }
+
+            if (this->options.passes.contains(PassKind::NameResolution)) {
+                ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>(passContext));
+            }
 
             // Execute the pass manager against the parser's resulting AST.
             ionLangPassManager.run(ionLangAst);
@@ -120,12 +134,35 @@ namespace ilc {
             ionir::PassManager ionirPassManager = ionir::PassManager();
 
             // Register passes.
-            ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>(passContext));
-            ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
-            ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>(passContext));
+            if (this->options.passes.contains(PassKind::EntryPointCheck)) {
+                ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>(passContext));
+            }
+
+            if (this->options.passes.contains(PassKind::TypeChecking)) {
+                ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
+            }
+
+            if (this->options.passes.contains(PassKind::BorrowCheck)) {
+                ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>(passContext));
+            }
 
             // Run the pass manager on the IonIR AST.
             ionirPassManager.run(ionIrAst);
+
+            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+                this->input,
+                *this->tokenStream
+            });
+
+            DiagnosticPrinterResult printResult =
+                diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
+
+            // TODO: Blocking multi-modules?
+            if (printResult.second > 0) {
+                std::cout << " --- LLVM code-generation: Error(s) encountered ---" << std::endl;
+
+                return;
+            }
 
             // TODO: Where should optimization passes occur? Before or after type-checking?
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
@@ -155,14 +192,21 @@ namespace ilc {
     }
 
     IonLangProcessor::IonLangProcessor(Options options, std::string input) :
-        ReplProcessor(options, input) {
+        ReplProcessor(options, input),
+        tokenStream(std::nullopt) {
         //
     }
 
     void IonLangProcessor::run() {
         std::vector<ionlang::Token> tokens = this->lex();
-        ionshared::Ptr<ionlang::Module> module = this->parse(tokens);
 
-        this->codegen(module);
+        ionshared::Ptr<DiagnosticVector> diagnostics =
+            std::make_shared<DiagnosticVector>();
+
+        ionshared::OptPtr<ionlang::Module> module = this->parse(tokens, diagnostics);
+
+        if (ionshared::util::hasValue(module)) {
+            this->codegen(*module, diagnostics);
+        }
     }
 }

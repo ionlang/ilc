@@ -7,24 +7,9 @@ namespace ilc {
         }
     }
 
-    ReplProcessor::ReplProcessor(Options options, std::string input)
-        : options(options), input(input) {
+    ReplProcessor::ReplProcessor(Options options, std::string input) :
+        options(options),
+        input(input) {
         //
-    }
-
-    std::string ReplProcessor::getInput() const noexcept {
-        return this->input;
-    }
-
-    void ReplProcessor::setInput(std::string input) noexcept {
-        this->input = std::move(input);
-    }
-
-    Options ReplProcessor::getOptions() const noexcept {
-        return this->options;
-    }
-
-    void ReplProcessor::setOptions(Options options) noexcept {
-        this->options = std::move(options);
     }
 }

@@ -3,8 +3,7 @@
 #include <ionir/passes/pass.h>
 
 namespace ilc {
-    class IonIrLoggerPass : public ionir::Pass {
-    public:
+    struct IonIrLoggerPass : ionir::Pass {
         IONSHARED_PASS_ID;
 
         explicit IonIrLoggerPass(
