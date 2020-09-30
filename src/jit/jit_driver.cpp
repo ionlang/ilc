@@ -11,14 +11,21 @@
 #include <ionlang/syntax/parser.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
-#include <ilc/repl/processor.h>
+#include <ilc/misc/log.h>
+#include <ilc/jit/jit_driver.h>
 
 namespace ilc {
-    std::vector<ionlang::Token> IonLangProcessor::lex() {
+    std::vector<ionlang::Token> JitDriver::lex() {
         ionlang::Lexer lexer = ionlang::Lexer(this->input);
         std::vector<ionlang::Token> tokens = lexer.scan();
 
-        std::cout << "--- Lexer: " << tokens.size() << " token(s) ---" << std::endl;
+        std::cout
+            << ConsoleColor::coat(
+                "--- Lexer: " + std::to_string(tokens.size()) + " token(s) ---",
+                ColorKind::ForegroundGreen
+            )
+
+            << std::endl;
 
         for (auto token : tokens) {
             std::cout << token << std::endl;
@@ -27,7 +34,7 @@ namespace ilc {
         return tokens;
     }
 
-    ionshared::OptPtr<ionlang::Module> IonLangProcessor::parse(
+    ionshared::OptPtr<ionlang::Module> JitDriver::parse(
         std::vector<ionlang::Token> tokens,
         ionshared::Ptr<DiagnosticVector> diagnostics
     ) {
@@ -46,12 +53,13 @@ namespace ilc {
             // TODO: Improve if block?
             if (ionlang::util::hasValue(moduleResult)) {
                 // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
-                std::cout << "--- Parser ---" << std::endl;
+                std::cout << ConsoleColor::coat("--- Parser ---", ColorKind::ForegroundGreen)
+                    << std::endl;
 
                 return ionlang::util::getResultValue(moduleResult);
             }
 
-            std::cout << "Parser: [Exception] Could not parse module" << std::endl;
+            log::error("Parser: Could not parse module");
 
             DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
                 this->input,
@@ -67,18 +75,18 @@ namespace ilc {
                 std::cout.flush();
             }
             else {
-                std::cout << "Could not create stack-trace" << std::endl;
+                log::error("Could not create stack-trace");
             }
         }
         catch (std::exception &exception) {
-            std::cout << "Parser: [Exception] " << exception.what() << std::endl;
+            log::error("Parser: " + std::string(exception.what()));
             this->tryThrow(exception);
         }
 
         return std::nullopt;
     }
 
-    void IonLangProcessor::codegen(
+    void JitDriver::codegen(
         ionshared::Ptr<ionlang::Module> module,
         ionshared::Ptr<DiagnosticVector> diagnostics
     ) {
@@ -99,15 +107,15 @@ namespace ilc {
 
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
-            if (this->options.passes.contains(PassKind::IonLangLogger)) {
+            if (cli::options.passes.contains(cli::PassKind::IonLangLogger)) {
                 ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>(passContext));
             }
 
-            if (this->options.passes.contains(PassKind::MacroExpansion)) {
+            if (cli::options.passes.contains(cli::PassKind::MacroExpansion)) {
                 ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>(passContext));
             }
 
-            if (this->options.passes.contains(PassKind::NameResolution)) {
+            if (cli::options.passes.contains(cli::PassKind::NameResolution)) {
                 ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>(passContext));
             }
 
@@ -134,15 +142,15 @@ namespace ilc {
             ionir::PassManager ionirPassManager = ionir::PassManager();
 
             // Register passes.
-            if (this->options.passes.contains(PassKind::EntryPointCheck)) {
+            if (cli::options.passes.contains(cli::PassKind::EntryPointCheck)) {
                 ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>(passContext));
             }
 
-            if (this->options.passes.contains(PassKind::TypeChecking)) {
+            if (cli::options.passes.contains(cli::PassKind::TypeChecking)) {
                 ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
             }
 
-            if (this->options.passes.contains(PassKind::BorrowCheck)) {
+            if (cli::options.passes.contains(cli::PassKind::BorrowCheck)) {
                 ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>(passContext));
             }
 
@@ -177,27 +185,42 @@ namespace ilc {
 
             // Display the resulting code of all the modules.
             for (const auto &[key, value] : modules) {
-                std::cout << "--- LLVM code-generation: " << key << " ---" << std::endl;
-                ionshared::LlvmModule(value).print();
+                std::cout
+                    << ConsoleColor::coat(
+                        "--- LLVM code-generation: " + key + " ---",
+                        ColorKind::ForegroundGreen
+                    )
+
+                    << std::endl;
+
+                ionshared::LlvmModule(value).printIr();
             }
 
             if (modules.empty()) {
-                std::cout << "--- LLVM code-generation contained no modules ---" << std::endl;
+                std::cout
+                    << ConsoleColor::coat(
+                        "--- LLVM code-generation contained no modules ---",
+                        ColorKind::ForegroundGreen
+                    )
+
+                    << std::endl;
             }
         }
         catch (std::exception &exception) {
-            std::cout << "LLVM code-generation: [Exception] " << exception.what() << std::endl;
+            log::error("LLVM code-generation: " + std::string(exception.what()));
             this->tryThrow(exception);
         }
     }
 
-    IonLangProcessor::IonLangProcessor(Options options, std::string input) :
-        ReplProcessor(options, input),
-        tokenStream(std::nullopt) {
-        //
+    void JitDriver::tryThrow(std::exception exception) {
+        if (cli::options.jitThrow) {
+            throw exception;
+        }
     }
 
-    void IonLangProcessor::run() {
+    void JitDriver::run(std::string input) {
+        this->input = input;
+
         std::vector<ionlang::Token> tokens = this->lex();
 
         ionshared::Ptr<DiagnosticVector> diagnostics =

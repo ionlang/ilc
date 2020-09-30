@@ -1,3 +1,4 @@
+#include <ilc/cli/options.h>
 #include <ilc/cli/console_color.h>
 
 namespace ilc {
@@ -20,10 +21,20 @@ namespace ilc {
     }
 
     std::string ConsoleColor::apply(std::string text, ColorKind code) {
+        // TODO: Repeated below.
+        if (cli::options.noColor) {
+            return text;
+        }
+
         return ConsoleColor::make((uint32_t)code) + text;
     }
 
     std::string ConsoleColor::coat(std::string text, ColorKind code) {
+        // TODO: Repeated above.
+        if (cli::options.noColor) {
+            return text;
+        }
+
         return ConsoleColor::apply(text, code) + ConsoleColor::reset;
     }
 

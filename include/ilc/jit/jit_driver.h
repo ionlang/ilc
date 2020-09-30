@@ -4,11 +4,13 @@
 #include <ionshared/misc/helpers.h>
 #include <ionlang/lexical/token.h>
 #include <ionlang/construct/module.h>
-#include "repl_processor.h"
+#include <ilc/misc/helpers.h>
 
 namespace ilc {
-    class IonLangProcessor : public ReplProcessor {
+    class JitDriver {
     private:
+        std::string input = "";
+
         std::optional<ionlang::TokenStream> tokenStream;
 
         std::vector<ionlang::Token> lex();
@@ -23,9 +25,9 @@ namespace ilc {
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
 
-    public:
-        IonLangProcessor(Options options, std::string input);
+        void tryThrow(std::exception exception);
 
-        void run() override;
+    public:
+        void run(std::string input);
     };
 }

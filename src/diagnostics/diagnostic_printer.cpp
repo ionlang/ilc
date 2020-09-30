@@ -362,7 +362,7 @@ namespace ilc {
         for (const auto &diagnostic : diagnosticsNativeVector) {
             bool isErrorLike = diagnostic.type == ionshared::DiagnosticType::Error
                 || diagnostic.type == ionshared::DiagnosticType::Fatal
-                || diagnostic.type ==ionshared::DiagnosticType::InternalError;
+                || diagnostic.type == ionshared::DiagnosticType::InternalError;
 
             // Increment the error-like counter on the result if applicable.
             if (isErrorLike) {

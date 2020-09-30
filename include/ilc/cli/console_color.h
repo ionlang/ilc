@@ -31,6 +31,8 @@ namespace ilc {
 
         ForegroundWhite = 37,
 
+        ForegroundGray = 90,
+
         BackgroundBlack = 40,
 
         BackgroundRed = 41,
@@ -45,7 +47,9 @@ namespace ilc {
 
         BackgroundCyan = 46,
 
-        BackgroundWhite = 47
+        BackgroundWhite = 47,
+
+        BackgroundGray = 100
     };
 
     // TODO: Finish implementation.

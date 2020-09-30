@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
+#include <ilc/misc/log.h>
 #include <ionir/const/const.h>
 
 namespace ilc {
@@ -15,7 +16,11 @@ namespace ilc {
         std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
         std::string addressString = " [" + ionshared::util::getPointerAddressString(node.get()) + "]";
-        std::cout << "Visiting node: " << constructName.value_or(defaultName) << addressString << std::endl;
+
+        std::cout << "Visiting: "
+            << constructName.value_or(defaultName)
+            << addressString
+            << std::endl;
 
         ionir::Pass::visit(node);
     }

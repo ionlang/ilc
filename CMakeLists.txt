@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 # General project information.
 set(PROJECT_URL "https://github.com/ionlang/ilc")
 
+set(CMAKE_EXE_LINKER_FLAGS "-static")
+
 # Setup source and build directories.
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -53,14 +55,8 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 llvm_map_components_to_libnames(llvm_libs all)
 
-# Link against LLVM libraries.
-target_link_libraries("${PROJECT_NAME}" PRIVATE LLVM)
-
-# Link against libionir.
-target_link_libraries("${PROJECT_NAME}" PRIVATE ionir::ionir)
-
-# Link against libionlang.
-target_link_libraries("${PROJECT_NAME}" PRIVATE ionlang::ionlang)
+# Link against libraries.
+target_link_libraries("${PROJECT_NAME}" PRIVATE LLVM ionshared::ionshared ionir::ionir ionlang::ionlang)
 
 # Provide include directories to be used in the build command. Position in file matters.
 target_include_directories(${PROJECT_NAME} PUBLIC "src" "include" "libs")

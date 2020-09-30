@@ -1,10 +1,12 @@
 #pragma once
 
+#include <string>
 #include <optional>
 #include <set>
+#include <vector>
 
-namespace ilc {
-    enum class PhaseKind {
+namespace ilc::cli {
+    enum class PhaseLevel : uint32_t {
         Lexing,
 
         Parsing,
@@ -27,34 +29,32 @@ namespace ilc {
     };
 
     struct Options {
-        PhaseKind phase = PhaseKind::CodeGeneration;
+        std::vector<std::string> inputFilePaths = std::vector<std::string>();
 
-        std::set<PassKind> passes = std::set<PassKind>{
-            PassKind::TypeChecking,
-            PassKind::NameResolution,
-            PassKind::MacroExpansion,
-            PassKind::IonLangLogger,
-            PassKind::EntryPointCheck,
-            PassKind::BorrowCheck
-        };
+        PhaseLevel phaseLevel = PhaseLevel::CodeGeneration;
+
+        std::set<PassKind> passes;
 
         /**
          * Target file path which to write result(s) to.
          */
-        std::optional<std::string> out = std::nullopt;
-
-        /**
-         * Whether to apply syntax-highlighting to stack trace.
-         * code blocks.
-         */
-        bool stackTraceHighlight = true;
-
-        bool repl = false;
+        std::string out = "build";
 
         /**
          * Whether to throw exceptions caught within
          * REPL mode.
          */
-        bool replThrow = false;
+        bool jitThrow;
+
+        bool noColor;
+
+        /**
+         * Whether to emit LLVM IR instead of LLVM bitcode.
+         */
+        bool llvmIr;
+
+        bool debug;
     };
+
+    static Options options = Options{};
 }

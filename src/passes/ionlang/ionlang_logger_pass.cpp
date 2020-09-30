@@ -1,5 +1,6 @@
-#include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ionlang/const/const.h>
+#include <ilc/passes/ionlang/ionlang_logger_pass.h>
+#include <ilc/misc/log.h>
 
 namespace ilc {
     IonLangLoggerPass::IonLangLoggerPass(
@@ -14,7 +15,11 @@ namespace ilc {
         std::optional<std::string> constructName = ionlang::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
         std::string addressString = " [" + ionshared::util::getPointerAddressString(node.get()) + "]";
-        std::cout << "Visiting node: " << constructName.value_or(defaultName) << addressString << std::endl;
+
+        std::cout << "Visiting: "
+            << constructName.value_or(defaultName)
+            << addressString
+            << std::endl;
 
         // TODO: Causing weak_ptr from this->shared_from_this() error.
         ionlang::Pass::visit(node);

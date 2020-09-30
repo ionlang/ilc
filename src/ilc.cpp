@@ -1,98 +1,172 @@
+// Include the cross-platform header before anything else.
+#include <ilc/cli/cross_platform.h>
+
 #include <queue>
+#include <filesystem>
 #include <CLI11/CLI11.hpp>
+#include <ionshared/misc/util.h>
 #include <ionlang/misc/static_init.h>
 #include <ionir/construct/type/void_type.h>
 #include <ionir/construct/prototype.h>
-#include <ilc/repl/repl.h>
+#include <ilc/misc/log.h>
+#include <ilc/jit/jit_driver.h>
+#include <ilc/jit/jit.h>
+#include <ilc/processing/driver.h>
+#include <ilc/cli/commands.h>
 
 #define ILC_CLI_COMMAND_TRACE "trace"
-#define ILC_CLI_COMMAND_REPL "repl"
+#define ILC_CLI_COMMAND_JIT "jit"
 #define ILC_CLI_COMMAND_VERSION "version"
 #define ILC_CLI_VERSION "1.0.0"
 
 using namespace ilc;
 
-void setup(CLI::App &app, Options &options) {
-    std::vector<std::string> inputFiles = {};
+void setupCli(CLI::App &app) {
+    // Command(s).
+    cli::traceCommand = app.add_subcommand(
+        ILC_CLI_COMMAND_TRACE,
+        "Trace resulting abstract syntax tree (AST)"
+    );
 
-    auto versionCommand = app.add_subcommand(std::string("--") + ILC_CLI_COMMAND_VERSION, "Display the program's version");
+    cli::jitCommand = app.add_subcommand(
+        ILC_CLI_COMMAND_JIT,
+        "Use JIT to compile code REPL-style"
+    );
 
-    app.add_option("--passes", [&](std::vector<std::string> passes) {
-        if (!passes.empty()) {
-            options.passes.clear();
+    // Option(s).
+    app.add_option(
+        "files",
+        cli::options.inputFilePaths,
+        "Input files to process"
+    )->check(CLI::ExistingFile);
+
+    app.add_option("-p,--passes", [&](std::vector<std::string> passes) {
+        if (passes.empty()) {
+            return true;
         }
 
+        cli::options.passes.clear();
+
         for (const auto &pass : passes) {
+            cli::options.passes.insert(cli::PassKind::NameResolution);
+
+            // TODO: Use CLI11's check.
             if (pass == "type-check") {
-                options.passes.insert(PassKind::TypeChecking);
+                cli::options.passes.insert(cli::PassKind::TypeChecking);
             }
-            else if (pass == "name-resolution") {
-                options.passes.insert(PassKind::NameResolution);
-            }
+//            else if (pass == "name-resolution") {
+//            cli::options.passes.insert(cli::PassKind::NameResolution);
+//            }
             else if (pass == "macro-expansion") {
-                options.passes.insert(PassKind::MacroExpansion);
+                cli::options.passes.insert(cli::PassKind::MacroExpansion);
             }
             else if (pass == "borrow-check") {
-                options.passes.insert(PassKind::BorrowCheck);
+                cli::options.passes.insert(cli::PassKind::BorrowCheck);
             }
             else {
-                std::cout << "Unknown pass '" << pass << "'" << std::endl;
-
                 return false;
             }
         }
 
         return true;
-    });
+    })->default_str("macro-expansion,name-resolution,type-check,borrow-check");
 
-    app.add_option("files", inputFiles, "Input files to process");
+    app.add_option("-l,--phase-level", cli::options.phaseLevel)
+        ->check(CLI::Range(0, 3))
+        ->default_val(std::to_string((int)cli::options.phaseLevel));
 
-    // Register global option(s).
-    // TODO: Bind '--phase' option to a sub-command 'inspect'?
-    app.add_option("-p,--phase", options.phase);
-    app.add_option("-o,--out", options.out);
-    app.add_option("-l,--stack-trace-highlight", options.stackTraceHighlight);
+    app.add_option(
+        "-o,--out",
+        cli::options.out,
+        "The directory onto which to write output"
+    )->default_val(cli::options.out);
 
-    // Register sub-command: trace.
-    CLI::App *trace = app.add_subcommand(ILC_CLI_COMMAND_TRACE, "Trace resulting abstract syntax tree (AST)");
+    // Flag(s).
+    app.add_flag("-c,--color", cli::options.noColor);
 
-    app.add_flag("-r,--repl", options.repl);
-    app.add_flag("-t,--repl-throw", options.replThrow);
+    app.add_flag(
+        "-i,--llvm-ir",
+        cli::options.llvmIr,
+        "Whether to emit LLVM IR or LLVM bitcode"
+    );
+
+    cli::jitCommand->add_flag(
+        "-t,--throw",
+        cli::options.jitThrow,
+        "Throw errors instead of capturing them"
+    );
 }
 
 int main(int argc, char **argv) {
-    CLI::App app{"Ion & IonIR command-line utility"};
-    Options options{};
+    CLI::App app{"Ionlang command-line utility"};
 
-    setup(app, options);
+    setupCli(app);
 
     // Parse arguments.
     CLI11_PARSE(app, argc, argv);
 
-    // Invoke static initialization of dependencies.
+    // Static initialization(s).
     ionlang::static_init::init();
 
-    if (options.repl) {
-        // TODO: Handle '--ir' flag in REPL mode.
-        Repl repl = Repl(options);
+    if (cli::jitCommand->parsed()) {
+        jit::registerCommonActions();
 
-        // Register common actions.
-        repl.getActionsProvider().registerCommon();
+        // Inform the user how to exit JIT, and begin the input loop.
+        log::info("Entering REPL mode; type '\\quit' to exit");
 
-        // Inform the user of REPL mode, and begin the input loop.
-        std::cout << "Entering REPL mode. Type ':quit' to exit." << std::endl;
-        repl.run();
+        std::string input;
+        JitDriver jitDriver = JitDriver();
+
+        while (true) {
+            std::cout << ConsoleColor::coat("<> ", ColorKind::ForegroundGray);
+            std::cout.flush();
+            std::getline(std::cin, input);
+
+            // TODO: Throwing linker reference error.
+            // Trim whitespace off input string.
+//            input = ionshared::util::trim(input);
+
+            // Input string was empty, continue to next prompt.
+            if (input.length() == 0) {
+                continue;
+            }
+            // An action is being specified.
+            else if (input[0] == '\\') {
+                std::string actionName = input.substr(1);
+
+                if (jit::actions.contains(actionName)) {
+                    std::optional<Callback> action = jit::actions.lookup(actionName);
+
+                    if (!action.has_value()) {
+                        throw std::runtime_error("Expected action to be set");
+                    }
+
+                    (*action)();
+                }
+                else {
+                    log::error("Unrecognized action; Type '\\quit' to exit");
+                }
+
+                continue;
+            }
+
+            std::cout << "--- Input: ("
+                << input.length()
+                << " character(s)) ---\n"
+                << input
+                << std::endl;
+
+            jitDriver.run(input);
+        }
     }
-    else if (app.get_subcommand(ILC_CLI_COMMAND_VERSION)) {
-        std::cout << "v" << ILC_CLI_VERSION << std::endl;
-    }
-    else if (app.get_subcommand(ILC_CLI_COMMAND_TRACE)->parsed()) {
+    else if (cli::traceCommand->parsed()) {
         // TODO: Hard-coded debugging test.
         ionshared::Ptr<ionir::Args> args = std::make_shared<ionir::Args>();
         ionshared::Ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
 
         // TODO: Module is nullptr.
-        ionshared::Ptr<ionir::Prototype> prototype = std::make_shared<ionir::Prototype>("foobar", args, returnType, nullptr);
+        ionshared::Ptr<ionir::Prototype> prototype =
+            std::make_shared<ionir::Prototype>("foobar", args, returnType, nullptr);
 
         std::queue<ionshared::Ptr<ionir::Construct>> childrenQueue = {};
 
@@ -108,7 +182,9 @@ int main(int argc, char **argv) {
             ionshared::Ptr<ionir::Construct> child = childrenQueue.back();
             ionir::Ast innerChildren = child->getChildrenNodes();
 
-            std::cout << "-- " << (int)child->constructKind;
+            std::cout << "-- "
+                << child->findConstructKindName().value_or("Unknown")
+                << std::endl;
 
             // Queue inner children if applicable.
             if (!innerChildren.empty()) {
@@ -118,11 +194,59 @@ int main(int argc, char **argv) {
 
                 // TODO: std::cout a newline if this is a terminal node, this way we can stack '--' like a tree?
             }
-            else {
-                std::cout << std::endl;
-            }
         }
     }
+    else if (!cli::options.inputFilePaths.empty()) {
+        log::verbose("Processing " + std::to_string(cli::options.inputFilePaths.size()) + " input file(s)");
 
-    return 0;
+        std::stringstream inputStringStream = std::stringstream();
+        Driver driver = Driver();
+        std::string outputFileExtension = std::string(".") + (cli::options.llvmIr ? "ll" : "o");
+
+        // Create the output directory if it doesn't already exist.
+        if (!std::filesystem::exists(cli::options.out)) {
+            log::verbose("Creating output directory '" + cli::options.out + "'");
+
+            // Ensure the directory was created, otherwise fail the process.
+            if (!std::filesystem::create_directory(cli::options.out)) {
+                log::error("Output directory could not be created");
+
+                return EXIT_FAILURE;
+            }
+        }
+
+        // TODO: Make target triple be taken in through options, with default to host.
+        llvm::Triple targetTriple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
+
+        bool success = true;
+
+        log::verbose("Using target triple: " + targetTriple.getTriple());
+
+        for (const auto &inputFilePath : cli::options.inputFilePaths) {
+            inputStringStream << std::ifstream(inputFilePath).rdbuf();
+
+            std::filesystem::path outputFilePath =
+                std::filesystem::path(cli::options.out)
+                    .append(inputFilePath)
+                    .concat(outputFileExtension);
+
+            log::verbose("Generating '" + outputFilePath.string() + "'");
+
+            // Stop processing input files if the driver fails to run.
+            if (!driver.run(targetTriple, outputFilePath, inputStringStream.str())) {
+                success = false;
+
+                break;
+            }
+        }
+
+        if (!success) {
+            log::error("Generation completed unsuccessfully");
+        }
+    }
+    else {
+        log::error("No input files; Use --help to view commands");
+    }
+
+    return EXIT_SUCCESS;
 }
