@@ -1,53 +1,46 @@
 #### ilc
 
-ilc (ionlang command-line utility) is a CLI tool for compiling and manipulating Ion & IonIR code.
+ilc (Ionlang command-line utility) is a CLI tool for compiling Ion
+code.
+
+#### Requirements
+
+* [ionir](https://github.com/ionlang/ionir)
+* [ionlang](https://github.com/ionlang/ionlang)
+* [CMake](https://cmake.org/download/)
+* GCC `>=v10`
+* [LLVM](https://releases.llvm.org/download.html)¹ `=v9.0.0`
+
+---
+1. _LLVM must be built from source on Windows. A different, close version of LLVM
+might work, but you will need to modify `CMakeLists.txt`, specifically where
+`find_package(LLVM X.0.0 REQUIRED CONFIG)` occurs._
 
 #### Building
 
-Requirements:
-
-* [ionir's dependencies](https://github.com/ionlang/ionir#requirements)
-* CMake
-* C++ compiler
-
-#### Usage
-
-#### Options
-
-1. Interactive mode **[-i, --interactive]**
-
-Use interactive mode to process Ion or IonIR interactively within the same terminal instance.
-Interactive mode will allow for a continuous input prompt within your current terminal instance.
-
-Example:
-
 ```shell
-$ ilc --interactive
+# Clone the repository.¹
+$ git clone https://github.com/ionlang
+$ cd ionlang
+
+# Generate Makefiles and build.
+$ mkdir build
+$ cd build
+$ cmake ..
+$ cmake --build .
 ```
 
-2. Output file **[-o, --out]**
-
-Specify an output file path onto which write result(s). If omitted, the filename of the input file
-provided will be used along with the IonIR file extension: `.ix`.
-
-Example:
-
-```shell
-$ ilc input.ion --out output.ix
-```
-
-#### Flags
-
-1. Target IonIR **[-r, --ir]**
-
-Informs the compiler that the input source code provided is IonIR.
-
-*More information pending.*
+---
+1. _Make sure you've selected the correct branch you're intending to
+build (`dev` for latest changes, `master` for stable), and initialized
+git submodules after cloning the repository and prior to building._
 
 #### Common problems
 
-* *Imported target "ionir::ionir" includes non-existent path "/ionir"*
+* *Imported target "x::x" includes non-existent path "/x"*
 
-1. Delete all installation directories (from both `Program Files` and `Program Files (x86)` of `ionir`).
-2. Re-install the `ionir` project.
-3. Reload the project.
+    Windows:
+
+    1. Delete all installation directories (from both `Program Files` and `Program Files (x86)` of `ionir`).
+    2. Re-install the `ionir` project.
+    3. Reload the project.
