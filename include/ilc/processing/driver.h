@@ -30,11 +30,7 @@ namespace ilc {
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
 
-        void makeObjectCode(llvm::Triple llvmTriple, llvm::Module *llvmModule);
-
-        void makeObjectCode2(llvm::Triple llvmTriple, llvm::Module *llvmModule);
-
-        bool makeObjectCode3(llvm::Triple targetTriple, llvm::Module *module);
+        bool makeObjectCode(llvm::Triple targetTriple, llvm::Module *module);
 
         void tryThrow(std::exception exception);
 
