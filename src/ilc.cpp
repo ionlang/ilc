@@ -129,6 +129,8 @@ int main(int argc, char **argv) {
         // Inform the user how to exit JIT, and begin the input loop.
         log::info("Entering REPL mode; type '\\quit' to exit");
 
+        log::verbose("Actions registered: " + std::to_string(jit::actions.getSize()));
+
         std::string input;
         JitDriver jitDriver = JitDriver();
 
@@ -159,7 +161,7 @@ int main(int argc, char **argv) {
                     (*action)();
                 }
                 else {
-                    log::error("Unrecognized action; Type '\\quit' to exit");
+                    log::error("Unrecognized action '" + actionName + "'; Type '\\quit' to exit");
                 }
 
                 continue;

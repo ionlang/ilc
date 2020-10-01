@@ -73,7 +73,7 @@ namespace ilc::log {
     }
 
     static void verbose(std::string text) {
-        if (!cli::options.noVerbose) {
+        if (cli::options.noVerbose) {
             return;
         }
 
