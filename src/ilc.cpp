@@ -8,7 +8,7 @@
 #include <ionlang/misc/static_init.h>
 #include <ionir/construct/type/void_type.h>
 #include <ionir/construct/prototype.h>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 #include <ilc/jit/jit_driver.h>
 #include <ilc/jit/jit.h>
 #include <ilc/processing/driver.h>
@@ -38,62 +38,77 @@ void setupCli(CLI::App &app) {
         "files",
         cli::options.inputFilePaths,
         "Input files to process"
-    )->check(CLI::ExistingFile);
+    )
+        ->check(CLI::ExistingFile);
 
-    app.add_option("-p,--passes", [&](std::vector<std::string> passes) {
-        if (passes.empty()) {
-            return true;
-        }
-
-        cli::options.passes.clear();
-
-        for (const auto &pass : passes) {
-            cli::options.passes.insert(cli::PassKind::NameResolution);
-
-            // TODO: Use CLI11's check.
-            if (pass == "type-check") {
-                cli::options.passes.insert(cli::PassKind::TypeChecking);
-            }
-//            else if (pass == "name-resolution") {
+//    app.add_option("-p,--passes", [&](std::vector<std::string> passes) {
+//        cli::options.passes.clear();
+//
+//        for (const auto &pass : passes) {
 //            cli::options.passes.insert(cli::PassKind::NameResolution);
+//
+//            // TODO: Use CLI11's check.
+//            if (pass == "type-check") {
+//                cli::options.passes.insert(cli::PassKind::TypeChecking);
 //            }
-            else if (pass == "macro-expansion") {
-                cli::options.passes.insert(cli::PassKind::MacroExpansion);
-            }
-            else if (pass == "borrow-check") {
-                cli::options.passes.insert(cli::PassKind::BorrowCheck);
-            }
-            else {
-                return false;
-            }
-        }
-
-        return true;
-    })->default_str("macro-expansion,name-resolution,type-check,borrow-check");
+////            else if (pass == "name-resolution") {
+////            cli::options.passes.insert(cli::PassKind::NameResolution);
+////            }
+//            else if (pass == "macro-expansion") {
+//                cli::options.passes.insert(cli::PassKind::MacroExpansion);
+//            }
+//            else if (pass == "borrow-check") {
+//                cli::options.passes.insert(cli::PassKind::BorrowCheck);
+//            }
+//            else {
+//                return false;
+//            }
+//        }
+//
+//        return true;
+//    })
+//        ->default_val("macro-expansion,name-resolution,type-check,borrow-check");
 
     app.add_option("-l,--phase-level", cli::options.phaseLevel)
-        ->check(CLI::Range(0, 3))
-        ->default_val(std::to_string((int)cli::options.phaseLevel));
+        ->check(CLI::Range(0, 2))
+        ->default_val(std::to_string((int)cli::PhaseLevel::CodeGeneration));
 
     app.add_option(
         "-o,--out",
         cli::options.out,
-        "The directory onto which to write output"
-    )->default_val(cli::options.out);
+        "The directory onto which to write output files"
+    )
+        ->default_val("build");
 
     // Flag(s).
-    app.add_flag("-c,--color", cli::options.noColor);
+    cli::jitCommand->add_flag(
+        "-t,--throw",
+        cli::options.doJitThrow,
+        "Throw errors instead of capturing them"
+    );
+
+    app.add_flag(
+        "-c,--no-color",
+        cli::options.noColor,
+        "Do not print color codes"
+    );
+
+    app.add_flag(
+        "-b,--no-verbose",
+        cli::options.noVerbose,
+        "Omit verbose messages"
+    );
+
+    app.add_flag(
+        "-r,--print-phases",
+        cli::options.doPrintPhases,
+        "Print phases"
+    );
 
     app.add_flag(
         "-i,--llvm-ir",
-        cli::options.llvmIr,
+        cli::options.doLlvmIr,
         "Whether to emit LLVM IR or LLVM bitcode"
-    );
-
-    cli::jitCommand->add_flag(
-        "-t,--throw",
-        cli::options.jitThrow,
-        "Throw errors instead of capturing them"
     );
 }
 
@@ -201,7 +216,7 @@ int main(int argc, char **argv) {
 
         std::stringstream inputStringStream = std::stringstream();
         Driver driver = Driver();
-        std::string outputFileExtension = std::string(".") + (cli::options.llvmIr ? "ll" : "o");
+        std::string outputFileExtension = std::string(".") + (cli::options.doLlvmIr ? "ll" : "o");
 
         // Create the output directory if it doesn't already exist.
         if (!std::filesystem::exists(cli::options.out)) {
@@ -241,7 +256,7 @@ int main(int argc, char **argv) {
         }
 
         if (!success) {
-            log::error("Generation completed unsuccessfully");
+            log::error("Generation failed");
         }
     }
     else {

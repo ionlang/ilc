@@ -29,7 +29,7 @@
 #include <ionlang/syntax/parser.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 #include <ilc/processing/driver.h>
 
 namespace ilc {
@@ -95,7 +95,7 @@ namespace ilc {
                 tokenStream
             });
 
-            DiagnosticPrinterResult printResult =
+            DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
 
             // TODO: Check for null ->make().
@@ -137,16 +137,29 @@ namespace ilc {
             // Register all passes to be used by the pass manager.
             // TODO: Create and implement IonLangLogger pass.
             if (cli::options.passes.contains(cli::PassKind::IonLangLogger)) {
-                ionLangPassManager.registerPass(std::make_shared<IonLangLoggerPass>(passContext));
+                ionLangPassManager.registerPass(
+                    std::make_shared<IonLangLoggerPass>(passContext)
+                );
             }
 
             if (cli::options.passes.contains(cli::PassKind::MacroExpansion)) {
-                ionLangPassManager.registerPass(std::make_shared<ionlang::MacroExpansionPass>(passContext));
+                ionLangPassManager.registerPass(
+                    std::make_shared<ionlang::MacroExpansionPass>(passContext)
+                );
             }
 
-//            if (cli::options.passes.contains(cli::PassKind::NameResolution)) {
-                ionLangPassManager.registerPass(std::make_shared<ionlang::NameResolutionPass>(passContext));
-//            }
+            if (cli::options.passes.contains(cli::PassKind::NameResolution)) {
+                ionLangPassManager.registerPass(
+                    std::make_shared<ionlang::NameResolutionPass>(passContext)
+                );
+            }
+
+            if (!ionLangPassManager.passes.empty()) {
+                log::verbose("Running "
+                    + std::to_string(ionLangPassManager.passes.size())
+                    + " Ion pass(es)"
+                );
+            }
 
             // Execute the pass manager against the parser's resulting AST.
             ionLangPassManager.run(ionLangAst);
@@ -168,35 +181,53 @@ namespace ilc {
                 *ionIrModuleBuffer
             };
 
-            ionir::PassManager ionirPassManager = ionir::PassManager();
+            ionir::PassManager ionIrPassManager = ionir::PassManager();
 
             // Register passes.
             if (cli::options.passes.contains(cli::PassKind::EntryPointCheck)) {
-                ionirPassManager.registerPass(std::make_shared<ionir::EntryPointCheckPass>(passContext));
+                ionIrPassManager.registerPass(
+                    std::make_shared<ionir::EntryPointCheckPass>(passContext)
+                );
             }
 
             if (cli::options.passes.contains(cli::PassKind::TypeChecking)) {
-                ionirPassManager.registerPass(std::make_shared<ionir::TypeCheckPass>(passContext));
+                ionIrPassManager.registerPass(
+                    std::make_shared<ionir::TypeCheckPass>(passContext)
+                );
             }
 
             if (cli::options.passes.contains(cli::PassKind::BorrowCheck)) {
-                ionirPassManager.registerPass(std::make_shared<ionir::BorrowCheckPass>(passContext));
+                ionIrPassManager.registerPass(
+                    std::make_shared<ionir::BorrowCheckPass>(passContext)
+                );
+            }
+
+            if (!ionIrPassManager.passes.empty()) {
+                log::verbose("Running "
+                    + std::to_string(ionIrPassManager.passes.size())
+                    + " IonIR pass(es)"
+                );
             }
 
             // Run the pass manager on the IonIR AST.
-            ionirPassManager.run(ionIrAst);
+            ionIrPassManager.run(ionIrAst);
 
             DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
                 this->input,
                 *this->tokenStream
             });
 
-            DiagnosticPrinterResult printResult =
+            DiagnosticStackTraceResult diagnosticStackTraceResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
 
             // TODO: Blocking multi-modules?
-            if (printResult.second > 0) {
-                std::cout << " --- LLVM code-generation: Error(s) encountered ---" << std::endl;
+            if (diagnosticStackTraceResult.second > 0) {
+                std::cout << " --- LLVM code-generation: "
+                    << diagnosticStackTraceResult.second
+                    << " error(s) encountered ---"
+                    << std::endl;
+
+                diagnosticPrinter.printDiagnosticStackTrace(diagnostics);
 
                 return std::nullopt;
             }
@@ -210,7 +241,8 @@ namespace ilc {
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
             ionIrLlvmCodegenPass.visitModule(*ionIrModuleBuffer);
 
-            std::map<std::string, llvm::Module *> modules = ionIrLlvmCodegenPass.getModules()->unwrap();
+            std::map<std::string, llvm::Module *> modules =
+                ionIrLlvmCodegenPass.getModules()->unwrap();
 
             if (modules.empty()) {
                 std::cout
@@ -354,7 +386,7 @@ namespace ilc {
     }
 
     void Driver::tryThrow(std::exception exception) {
-        if (cli::options.jitThrow) {
+        if (cli::options.doJitThrow) {
             throw exception;
         }
     }
