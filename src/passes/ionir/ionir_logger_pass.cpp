@@ -1,6 +1,6 @@
 #include <iostream>
 #include <ilc/passes/ionir/ionir_logger_pass.h>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 #include <ionir/const/const.h>
 
 namespace ilc {

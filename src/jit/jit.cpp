@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 #include <ilc/jit/jit.h>
 
 namespace ilc::jit {

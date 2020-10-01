@@ -11,7 +11,7 @@
 #include <ionlang/syntax/parser.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 #include <ilc/jit/jit_driver.h>
 
 namespace ilc {
@@ -66,7 +66,7 @@ namespace ilc {
                 tokenStream
             });
 
-            DiagnosticPrinterResult printResult =
+            DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
 
             // TODO: Check for null ->make().
@@ -162,12 +162,15 @@ namespace ilc {
                 *this->tokenStream
             });
 
-            DiagnosticPrinterResult printResult =
+            DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
 
             // TODO: Blocking multi-modules?
             if (printResult.second > 0) {
-                std::cout << " --- LLVM code-generation: Error(s) encountered ---" << std::endl;
+                std::cout << " --- LLVM code-generation: "
+                    << printResult.second
+                    << " error(s) encountered ---"
+                    << std::endl;
 
                 return;
             }
@@ -213,7 +216,7 @@ namespace ilc {
     }
 
     void JitDriver::tryThrow(std::exception exception) {
-        if (cli::options.jitThrow) {
+        if (cli::options.doJitThrow) {
             throw exception;
         }
     }

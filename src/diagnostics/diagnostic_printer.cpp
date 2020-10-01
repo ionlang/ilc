@@ -95,26 +95,26 @@ namespace ilc {
         return result.str();
     }
 
-    std::string DiagnosticPrinter::findDiagnosticTypeText(ionshared::DiagnosticType type) {
+    std::string DiagnosticPrinter::findDiagnosticKindText(ionshared::DiagnosticKind kind) {
         // TODO: Hard-coded, use a map instead?
-        switch (type) {
-            case ionshared::DiagnosticType::InternalError: {
+        switch (kind) {
+            case ionshared::DiagnosticKind::InternalError: {
                 return "Internal Error";
             }
 
-            case ionshared::DiagnosticType::Info: {
+            case ionshared::DiagnosticKind::Info: {
                 return "Info";
             }
 
-            case ionshared::DiagnosticType::Warning: {
+            case ionshared::DiagnosticKind::Warning: {
                 return "Warning";
             }
 
-            case ionshared::DiagnosticType::Error: {
+            case ionshared::DiagnosticKind::Error: {
                 return "Error";
             }
 
-            case ionshared::DiagnosticType::Fatal: {
+            case ionshared::DiagnosticKind::Fatal: {
                 return "Fatal";
             }
 
@@ -140,9 +140,9 @@ namespace ilc {
     std::string DiagnosticPrinter::createTraceHeader(ionshared::Diagnostic diagnostic) noexcept {
         std::stringstream traceHeader;
 
-        if (diagnostic.location.has_value()) {
-            const ionshared::Span lines = diagnostic.location.value().lines;
-            const ionshared::Span column = diagnostic.location.value().column;
+        if (diagnostic.sourceLocation.has_value()) {
+            const ionshared::Span lines = diagnostic.sourceLocation.value().lines;
+            const ionshared::Span column = diagnostic.sourceLocation.value().column;
 
             // TODO: File path.
             traceHeader << /*this->location.filePath +*/ ":"
@@ -156,7 +156,7 @@ namespace ilc {
                 << " | ";
         }
 
-        traceHeader << DiagnosticPrinter::findDiagnosticTypeText(diagnostic.type)
+        traceHeader << DiagnosticPrinter::findDiagnosticKindText(diagnostic.kind)
             << ": "
             << diagnostic.message
             << "\n";
@@ -305,11 +305,11 @@ namespace ilc {
         const ionshared::Diagnostic &diagnostic,
         uint32_t grace
     ) {
-        if (!diagnostic.location.has_value()) {
+        if (!diagnostic.sourceLocation.has_value()) {
             return std::nullopt;
         }
 
-        return this->createCodeBlockNear(*diagnostic.location, grace);
+        return this->createCodeBlockNear(*diagnostic.sourceLocation, grace);
     }
 
     std::string DiagnosticPrinter::createTraceBody(ionshared::Diagnostic diagnostic, bool isPrime) {
@@ -341,10 +341,10 @@ namespace ilc {
         return traceBody.str();
     }
 
-    DiagnosticPrinterResult DiagnosticPrinter::createDiagnosticStackTrace(
+    DiagnosticStackTraceResult DiagnosticPrinter::createDiagnosticStackTrace(
         ionshared::Ptr<DiagnosticVector> diagnostics
     ) {
-        DiagnosticPrinterResult result = std::make_pair(std::nullopt, 0);
+        DiagnosticStackTraceResult result = std::make_pair(std::nullopt, 0);
 
         if (diagnostics->isEmpty()) {
             return result;
@@ -360,9 +360,9 @@ namespace ilc {
         // TODO: Variable 'longestLineNumberDigits' needed to calculate extra prefix spaces. Loop through the diagnostics and find the highest line number.
 
         for (const auto &diagnostic : diagnosticsNativeVector) {
-            bool isErrorLike = diagnostic.type == ionshared::DiagnosticType::Error
-                || diagnostic.type == ionshared::DiagnosticType::Fatal
-                || diagnostic.type == ionshared::DiagnosticType::InternalError;
+            bool isErrorLike = diagnostic.kind == ionshared::DiagnosticKind::Error
+                || diagnostic.kind == ionshared::DiagnosticKind::Fatal
+                || diagnostic.kind == ionshared::DiagnosticKind::InternalError;
 
             // Increment the error-like counter on the result if applicable.
             if (isErrorLike) {
@@ -371,7 +371,7 @@ namespace ilc {
 
             stringStream << DiagnosticPrinter::createTraceHeader(diagnostic);
 
-            if (diagnostic.location.has_value()) {
+            if (diagnostic.sourceLocation.has_value()) {
                 stringStream << this->createTraceBody(diagnostic, isPrime);
             }
 
@@ -390,5 +390,18 @@ namespace ilc {
         result.first = stringStream.str();
 
         return result;
+    }
+
+    bool DiagnosticPrinter::printDiagnosticStackTrace(ionshared::Ptr<DiagnosticVector> diagnostics) {
+        DiagnosticStackTraceResult diagnosticStackTraceResult =
+            this->createDiagnosticStackTrace(diagnostics);
+
+        if (diagnosticStackTraceResult.second == 0 || !diagnosticStackTraceResult.first.has_value()) {
+            return false;
+        }
+
+        std::cout << *diagnosticStackTraceResult.first;
+
+        return true;
     }
 }

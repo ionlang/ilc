@@ -29,31 +29,43 @@ namespace ilc::cli {
     };
 
     struct Options {
-        std::vector<std::string> inputFilePaths = std::vector<std::string>();
+        std::vector<std::string> inputFilePaths;
 
-        PhaseLevel phaseLevel = PhaseLevel::CodeGeneration;
+        PhaseLevel phaseLevel;
 
-        std::set<PassKind> passes;
+        // TODO: Should be default.
+        std::set<PassKind> passes = std::set<cli::PassKind>({
+            cli::PassKind::TypeChecking,
+            cli::PassKind::NameResolution,
+            cli::PassKind::MacroExpansion,
+            cli::PassKind::IonLangLogger,
+            cli::PassKind::EntryPointCheck,
+            cli::PassKind::BorrowCheck
+        });;
 
         /**
          * Target file path which to write result(s) to.
          */
-        std::string out = "build";
+        std::string out;
+
+        bool doPrintPhases;
+
+        /**
+         * Whether to emit LLVM IR instead of LLVM bitcode.
+         */
+        bool doLlvmIr;
+
+        bool doDebug;
 
         /**
          * Whether to throw exceptions caught within
          * REPL mode.
          */
-        bool jitThrow;
+        bool doJitThrow;
 
         bool noColor;
 
-        /**
-         * Whether to emit LLVM IR instead of LLVM bitcode.
-         */
-        bool llvmIr;
-
-        bool debug;
+        bool noVerbose;
     };
 
     static Options options = Options{};

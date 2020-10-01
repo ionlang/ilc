@@ -73,6 +73,10 @@ namespace ilc::log {
     }
 
     static void verbose(std::string text) {
+        if (!cli::options.noVerbose) {
+            return;
+        }
+
         make(LogLevel::Verbose, text);
     }
 
@@ -97,7 +101,7 @@ namespace ilc::log {
     }
 
     static void debug(std::string text) {
-        if (!cli::options.debug) {
+        if (!cli::options.doDebug) {
             return;
         }
 

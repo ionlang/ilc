@@ -27,7 +27,7 @@ namespace ilc {
      * A print result. The first item on the pair represents the resulting
      * string, and the second the amount of error-like diagnostics encountered.
      */
-    typedef std::pair<std::optional<std::string>, uint32_t> DiagnosticPrinterResult;
+    typedef std::pair<std::optional<std::string>, uint32_t> DiagnosticStackTraceResult;
 
     struct DiagnosticPrinterOpts {
         const std::string input;
@@ -49,8 +49,8 @@ namespace ilc {
             bool colors = true
         );
 
-        [[nodiscard]] static std::string findDiagnosticTypeText(
-            ionshared::DiagnosticType type
+        [[nodiscard]] static std::string findDiagnosticKindText(
+            ionshared::DiagnosticKind kind
         );
 
         [[nodiscard]] static std::string resolveInputText(
@@ -97,7 +97,11 @@ namespace ilc {
     public:
         explicit DiagnosticPrinter(DiagnosticPrinterOpts opts);
 
-        DiagnosticPrinterResult createDiagnosticStackTrace(
+        DiagnosticStackTraceResult createDiagnosticStackTrace(
+            ionshared::Ptr<DiagnosticVector> diagnostics
+        );
+
+        bool printDiagnosticStackTrace(
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
     };

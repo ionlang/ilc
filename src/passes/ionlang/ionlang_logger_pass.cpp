@@ -1,6 +1,6 @@
 #include <ionlang/const/const.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
-#include <ilc/misc/log.h>
+#include <ilc/cli/log.h>
 
 namespace ilc {
     IonLangLoggerPass::IonLangLoggerPass(
