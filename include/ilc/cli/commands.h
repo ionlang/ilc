@@ -5,5 +5,5 @@
 namespace ilc::cli {
     static CLI::App *jitCommand;
 
-    static CLI::App *traceCommand;
+    static CLI::App *astCommand;
 }

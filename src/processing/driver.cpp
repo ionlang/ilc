@@ -27,9 +27,11 @@
 #include <ionlang/passes/semantic/name_resolution_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
+#include <ilc/passes/ionlang/ionlang_printer_pass.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
 #include <ilc/cli/log.h>
+#include <ilc/cli/commands.h>
 #include <ilc/processing/driver.h>
 
 namespace ilc {
@@ -408,6 +410,25 @@ namespace ilc {
 
         if (!ionshared::util::hasValue(ionLangModules)) {
             return false;
+        }
+        // AST command was parsed. Only print AST then exit.
+        else if (cli::astCommand->parsed()) {
+            ionlang::Ast ionLangAst = {
+                *ionLangModules
+            };
+
+            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
+
+            ionshared::Ptr<ionshared::PassContext> passContext =
+                std::make_shared<ionshared::PassContext>();
+
+            ionLangPassManager.registerPass(
+                std::make_shared<IonLangPrinterPass>(passContext)
+            );
+
+            ionLangPassManager.run(ionLangAst);
+
+            return true;
         }
 
         std::optional<std::vector<llvm::Module *>> llvmModules =

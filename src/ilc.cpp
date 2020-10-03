@@ -14,22 +14,19 @@
 #include <ilc/processing/driver.h>
 #include <ilc/cli/commands.h>
 
-#define ILC_CLI_COMMAND_TRACE "trace"
-#define ILC_CLI_COMMAND_JIT "jit"
-#define ILC_CLI_COMMAND_VERSION "version"
 #define ILC_CLI_VERSION "1.0.0"
 
 using namespace ilc;
 
 void setupCli(CLI::App &app) {
     // Command(s).
-    cli::traceCommand = app.add_subcommand(
-        ILC_CLI_COMMAND_TRACE,
+    cli::astCommand = app.add_subcommand(
+        "ast",
         "Trace resulting abstract syntax tree (AST)"
     );
 
     cli::jitCommand = app.add_subcommand(
-        ILC_CLI_COMMAND_JIT,
+        "jit",
         "Use JIT to compile code REPL-style"
     );
 
@@ -176,7 +173,7 @@ int main(int argc, char **argv) {
             jitDriver.run(input);
         }
     }
-    else if (cli::traceCommand->parsed()) {
+    else if (cli::astCommand->parsed()) {
         // TODO: Hard-coded debugging test.
         ionshared::Ptr<ionir::Args> args = std::make_shared<ionir::Args>();
         ionshared::Ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
