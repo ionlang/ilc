@@ -134,8 +134,14 @@ int main(int argc, char **argv) {
         while (true) {
             std::cout << ConsoleColor::coat("<> ", ColorKind::ForegroundGray);
             std::cout.flush();
-            std::getline(std::cin, input);
 
+            // If the EOF bit is on, terminate program.
+            if (std::getline(std::cin, input).eof()) {
+                std::cout << std::endl;
+                
+                return EXIT_SUCCESS;
+            }
+            
             // TODO: Throwing linker reference error.
             // Trim whitespace off input string.
 //            input = ionshared::util::trim(input);
