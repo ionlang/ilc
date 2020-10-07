@@ -1,11 +1,10 @@
 #include <ilc/passes/ionir/ionir_directive_processor_pass.h>
 #include <ilc/misc/file_system.h>
-#include <ilc/misc/util.h>
 
 namespace ilc {
     IonIrDirectiveProcessorPass::IonIrDirectiveProcessorPass(
         ionshared::Ptr<ionshared::PassContext> context,
-        OptPtr<std::stringstream> includeOutputStream
+        ionshared::OptPtr<std::stringstream> includeOutputStream
     ) :
         ionir::Pass(std::move(context)),
         includeOutputStream(includeOutputStream) {
@@ -30,7 +29,7 @@ namespace ilc {
                 }
 
                 // Send the file contents through the provided output stream if applicable.
-                if (Util::hasValue(this->includeOutputStream)) {
+                if (ionshared::util::hasValue(this->includeOutputStream)) {
                     **this->includeOutputStream << *fileContents;
                 }
             }

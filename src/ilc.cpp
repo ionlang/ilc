@@ -78,12 +78,6 @@ void setupCli(CLI::App &app) {
         ->default_val("build");
 
     // Flag(s).
-    cli::jitCommand->add_flag(
-        "-t,--throw",
-        cli::options.doJitThrow,
-        "Throw errors instead of capturing them"
-    );
-
     app.add_flag(
         "-c,--no-color",
         cli::options.noColor,
@@ -106,6 +100,12 @@ void setupCli(CLI::App &app) {
         "-i,--llvm-ir",
         cli::options.doLlvmIr,
         "Whether to emit LLVM IR or LLVM bitcode"
+    );
+
+    cli::jitCommand->add_flag(
+        "-t,--throw",
+        cli::options.doJitThrow,
+        "Throw errors instead of capturing them"
     );
 }
 
@@ -234,6 +234,9 @@ int main(int argc, char **argv) {
 
         bool success = true;
 
+        std::vector<std::filesystem::path> outputFilePaths =
+            std::vector<std::filesystem::path>();
+
         log::verbose("Using target triple: " + targetTriple.getTriple());
 
         for (const auto &inputFilePath : cli::options.inputFilePaths) {
@@ -244,14 +247,21 @@ int main(int argc, char **argv) {
                     .append(inputFilePath)
                     .concat(outputFileExtension);
 
+            outputFilePaths.push_back(outputFilePath);
+
             log::verbose("Generating '" + outputFilePath.string() + "'");
 
             // Stop processing input files if the driver fails to run.
-            if (!driver.run(targetTriple, outputFilePath, inputStringStream.str())) {
+            if (!driver.process(targetTriple, outputFilePath, inputStringStream.str())) {
                 success = false;
 
                 break;
             }
+        }
+
+        // TODO: Should instead be 'outputType'.
+        if (!cli::options.doLlvmIr && success) {
+            driver.link(outputFilePaths);
         }
 
         if (!success) {

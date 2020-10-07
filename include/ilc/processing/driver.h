@@ -30,17 +30,20 @@ namespace ilc {
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
 
-        bool makeObjectCode(llvm::Triple targetTriple, llvm::Module *module);
+        bool writeObjectFile(llvm::Triple targetTriple, llvm::Module *module);
 
         void tryThrow(std::exception exception);
 
     public:
+        bool link(std::vector<std::filesystem::path> objectFilePaths);
+
         /**
          * Proceed to lex, parse, lower, and emit to either LLVM
-         * IR or object code. Returns true if successful, and false
+         * IR or object code. However, the linker will not be invoked
+         * automatically. Returns true if successful, and false
          * otherwise.
          */
-        bool run(
+        bool process(
             llvm::Triple targetTriple,
             std::filesystem::path outputFilePath,
             std::string input

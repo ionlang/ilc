@@ -1,8 +1,11 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <iomanip>
 #include <ilc/cli/options.h>
 #include <ilc/cli/console_color.h>
+
+#define ILC_LOG_TEXT_WIDTH 7 + 1
 
 namespace ilc::log {
     enum class LogLevel {
@@ -25,31 +28,31 @@ namespace ilc::log {
     static std::optional<std::string> findLogLevelText(LogLevel logLevel) {
         switch (logLevel) {
             case LogLevel::Verbose: {
-                return "Verbose";
+                return "verbose";
             }
 
             case LogLevel::Success: {
-                return "Success";
+                return "ok";
             }
 
             case LogLevel::Info: {
-                return "Info";
+                return "info";
             }
 
             case LogLevel::Warning: {
-                return "Warning";
+                return "warning";
             }
 
             case LogLevel::Error: {
-                return "Error";
+                return "error";
             }
 
             case LogLevel::Fatal: {
-                return "Fatal";
+                return "fatal";
             }
 
             case LogLevel::Debug: {
-                return "Debug";
+                return "debug";
             }
 
             default: {
@@ -65,9 +68,9 @@ namespace ilc::log {
             throw std::runtime_error("Could not determine text of provided log level");
         }
 
-        std::cout << ConsoleColor::coat("[", ColorKind::ForegroundGray)
+        std::cout << std::setw(ILC_LOG_TEXT_WIDTH)
             << ConsoleColor::coat(*logLevelText, (ColorKind)logLevel)
-            << ConsoleColor::coat("] ", ColorKind::ForegroundGray)
+            << " "
             << text
             << std::endl;
     }

@@ -32,6 +32,7 @@
 #include <ilc/diagnostics/diagnostic_printer.h>
 #include <ilc/cli/log.h>
 #include <ilc/cli/commands.h>
+#include <ilc/processing/linker_invoker.h>
 #include <ilc/processing/driver.h>
 
 namespace ilc {
@@ -286,13 +287,13 @@ namespace ilc {
         return std::nullopt;
     }
 
-    bool Driver::makeObjectCode(llvm::Triple targetTriple, llvm::Module *module) {
+    bool Driver::writeObjectFile(llvm::Triple targetTriple, llvm::Module *module) {
         // Initialize targets for emitting object code.
-        InitializeAllTargetInfos();
-        InitializeAllTargets();
-        InitializeAllTargetMCs();
-        InitializeAllAsmParsers();
-        InitializeAllAsmPrinters();
+        llvm::InitializeAllTargetInfos();
+        llvm::InitializeAllTargets();
+        llvm::InitializeAllTargetMCs();
+        llvm::InitializeAllAsmParsers();
+        llvm::InitializeAllAsmPrinters();
 
         std::string error;
 
@@ -387,13 +388,24 @@ namespace ilc {
         return true;
     }
 
+    bool Driver::link(std::vector<std::filesystem::path> objectFilePaths) {
+        log::verbose("Linking " + std::to_string(objectFilePaths.size()) + " file(s)");
+
+        LinkerInvoker linkerInvoker = LinkerInvoker(objectFilePaths);
+
+        // TODO: Pass the linker kind from options.
+        std::optional<int> invocationResult = linkerInvoker.invoke(LinkerKind::GCC);
+
+        return invocationResult.has_value() && *invocationResult == EXIT_SUCCESS;
+    }
+
     void Driver::tryThrow(std::exception exception) {
         if (cli::options.doJitThrow) {
             throw exception;
         }
     }
 
-    bool Driver::run(
+    bool Driver::process(
         llvm::Triple targetTriple,
         std::filesystem::path outputFilePath,
         std::string input
@@ -411,25 +423,26 @@ namespace ilc {
         if (!ionshared::util::hasValue(ionLangModules)) {
             return false;
         }
+        // TODO: Throwing SIGSEGV (nullptr). This may be due to cli::astCommand not being a smart pointer and going out of scope.
         // AST command was parsed. Only print AST then exit.
-        else if (cli::astCommand->parsed()) {
-            ionlang::Ast ionLangAst = {
-                *ionLangModules
-            };
-
-            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
-
-            ionshared::Ptr<ionshared::PassContext> passContext =
-                std::make_shared<ionshared::PassContext>();
-
-            ionLangPassManager.registerPass(
-                std::make_shared<IonLangPrinterPass>(passContext)
-            );
-
-            ionLangPassManager.run(ionLangAst);
-
-            return true;
-        }
+//        else if (cli::astCommand->parsed()) {
+//            ionlang::Ast ionLangAst = {
+//                *ionLangModules
+//            };
+//
+//            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
+//
+//            ionshared::Ptr<ionshared::PassContext> passContext =
+//                std::make_shared<ionshared::PassContext>();
+//
+//            ionLangPassManager.registerPass(
+//                std::make_shared<IonLangPrinterPass>(passContext)
+//            );
+//
+//            ionLangPassManager.run(ionLangAst);
+//
+//            return true;
+//        }
 
         std::optional<std::vector<llvm::Module *>> llvmModules =
             this->lowerToLlvmIr(*ionLangModules, diagnostics);
@@ -439,6 +452,6 @@ namespace ilc {
         }
 
         // TODO: Processing only first module until implemented support for multiple (consider multiple modules inside a single file).
-        return this->makeObjectCode(targetTriple, llvmModules.value()[0]);
+        return this->writeObjectFile(targetTriple, llvmModules.value()[0]);
     }
 }
