@@ -1,5 +1,6 @@
 #include <sstream>
 #include <ionlang/misc/util.h>
+#include <ilc/cli/log.h>
 #include <ilc/cli/console_color.h>
 #include <ilc/diagnostics/code_highlight.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
@@ -95,33 +96,47 @@ namespace ilc {
         return result.str();
     }
 
-    std::string DiagnosticPrinter::findDiagnosticKindText(ionshared::DiagnosticKind kind) {
-        // TODO: Hard-coded, use a map instead?
+    std::string DiagnosticPrinter::makeDiagnosticKindText(
+        ionshared::DiagnosticKind kind,
+        std::string text
+    ) {
+        log::LogLevel logLevel;
+
         switch (kind) {
+            // TODO: Using fallback (not directly mapped).
+            case ionshared::DiagnosticKind::Fatal: {
+                //
+            }
+
+            // TODO: Using fallback (not directly mapped).
             case ionshared::DiagnosticKind::InternalError: {
-                return "Internal Error";
-            }
-
-            case ionshared::DiagnosticKind::Info: {
-                return "Info";
-            }
-
-            case ionshared::DiagnosticKind::Warning: {
-                return "Warning";
+                //
             }
 
             case ionshared::DiagnosticKind::Error: {
-                return "Error";
+                logLevel = log::LogLevel::Error;
+
+                break;
             }
 
-            case ionshared::DiagnosticKind::Fatal: {
-                return "Fatal";
+            case ionshared::DiagnosticKind::Info: {
+                logLevel = log::LogLevel::Info;
+
+                break;
+            }
+
+            case ionshared::DiagnosticKind::Warning: {
+                logLevel = log::LogLevel::Warning;
+
+                break;
             }
 
             default: {
-                return "Unknown";
+                throw std::runtime_error("Unknown diagnostic kind");
             }
         }
+
+        return log::makeLogTemplate(logLevel, (ColorKind)logLevel, text).str();
     }
 
     std::string DiagnosticPrinter::resolveInputText(
@@ -156,9 +171,10 @@ namespace ilc {
                 << " | ";
         }
 
-        traceHeader << DiagnosticPrinter::findDiagnosticKindText(diagnostic.kind)
-            << ": "
-            << diagnostic.message
+        traceHeader << DiagnosticPrinter::makeDiagnosticKindText(
+            diagnostic.kind,
+            diagnostic.message
+        )
             << "\n";
 
         return traceHeader.str();

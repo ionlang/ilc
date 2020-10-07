@@ -49,8 +49,9 @@ namespace ilc {
             bool colors = true
         );
 
-        [[nodiscard]] static std::string findDiagnosticKindText(
-            ionshared::DiagnosticKind kind
+        [[nodiscard]] static std::string makeDiagnosticKindText(
+            ionshared::DiagnosticKind kind,
+            std::string text
         );
 
         [[nodiscard]] static std::string resolveInputText(

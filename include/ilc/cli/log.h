@@ -61,18 +61,30 @@ namespace ilc::log {
         }
     }
 
-    static void make(LogLevel logLevel, std::string text) {
+    [[nodiscard]] static std::stringstream makeLogTemplate(
+        LogLevel logLevel,
+        ColorKind color,
+        std::string text
+    ) {
         std::optional<std::string> logLevelText = log::findLogLevelText(logLevel);
 
         if (!logLevelText.has_value()) {
             throw std::runtime_error("Could not determine text of provided log level");
         }
 
-        std::cout << std::setw(ILC_LOG_TEXT_WIDTH)
-            << ConsoleColor::coat(*logLevelText, (ColorKind)logLevel)
+        std::stringstream resultStream;
+
+        resultStream << std::setw(ILC_LOG_TEXT_WIDTH)
+            << ConsoleColor::coat(*logLevelText, color)
             << " "
             << text
             << std::endl;
+
+        return resultStream;
+    }
+
+    static void makeAndPrint(LogLevel logLevel, std::string text) {
+        std::cout << log::makeLogTemplate(logLevel, (ColorKind)logLevel, text).str();
     }
 
     static void verbose(std::string text) {
@@ -80,27 +92,27 @@ namespace ilc::log {
             return;
         }
 
-        make(LogLevel::Verbose, text);
+        makeAndPrint(LogLevel::Verbose, text);
     }
 
     static void success(std::string text) {
-        log::make(LogLevel::Success, text);
+        log::makeAndPrint(LogLevel::Success, text);
     }
 
     static void info(std::string text) {
-        log::make(LogLevel::Info, text);
+        log::makeAndPrint(LogLevel::Info, text);
     }
 
     static void warning(std::string text) {
-        log::make(LogLevel::Warning, text);
+        log::makeAndPrint(LogLevel::Warning, text);
     }
 
     static void error(std::string text) {
-        log::make(LogLevel::Error, text);
+        log::makeAndPrint(LogLevel::Error, text);
     }
 
     static void fatal(std::string text) {
-        log::make(LogLevel::Fatal, text);
+        log::makeAndPrint(LogLevel::Fatal, text);
     }
 
     static void debug(std::string text) {
@@ -108,6 +120,6 @@ namespace ilc::log {
             return;
         }
 
-        log::make(LogLevel::Debug, text);
+        log::makeAndPrint(LogLevel::Debug, text);
     }
 }
