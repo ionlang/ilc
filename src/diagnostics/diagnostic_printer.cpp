@@ -136,6 +136,7 @@ namespace ilc {
             }
         }
 
+        // NOTE: The result is returned with a newline character.
         return log::makeLogTemplate(logLevel, (ColorKind)logLevel, text).str();
     }
 
@@ -171,11 +172,11 @@ namespace ilc {
                 << " | ";
         }
 
+        // NOTE: The result is returned with a newline character.
         traceHeader << DiagnosticPrinter::makeDiagnosticKindText(
             diagnostic.kind,
             diagnostic.message
-        )
-            << "\n";
+        );
 
         return traceHeader.str();
     }

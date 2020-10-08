@@ -271,7 +271,10 @@ int main(int argc, char **argv) {
         }
 
         if (!success) {
-            log::error("Generation failed");
+            // TODO: Show this message?
+//            log::error("Generation failed");
+
+            return EXIT_FAILURE;
         }
     }
     else {
