@@ -42,7 +42,7 @@ file(
 )
 
 # Setup LLVM include directories.
-find_package(LLVM 9.0.0 REQUIRED CONFIG)
+find_package(LLVM 10.0.1 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")

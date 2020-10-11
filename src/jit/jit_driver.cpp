@@ -1,6 +1,6 @@
 #include <ionshared/diagnostics/diagnostic.h>
 #include <ionshared/llvm/llvm_module.h>
-#include <ionir/passes/codegen/llvm_codegen_pass.h>
+#include <ionir/passes/lowering/llvm_lowering_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/type_system/borrow_check_pass.h>
 #include <ionir/passes/semantic/entry_point_check_pass.h>
@@ -179,12 +179,12 @@ namespace ilc {
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
-            ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass(passContext);
+            ionir::LlvmLoweringPass ionIrLlvmLoweringPass = ionir::LlvmLoweringPass(passContext);
 
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
-            ionIrLlvmCodegenPass.visitModule(*ionIrModuleBuffer);
+            ionIrLlvmLoweringPass.visitModule(*ionIrModuleBuffer);
 
-            std::map<std::string, llvm::Module *> modules = ionIrLlvmCodegenPass.getModules()->unwrap();
+            std::map<std::string, llvm::Module*> modules = ionIrLlvmLoweringPass.getModules()->unwrap();
 
             // Display the resulting code of all the modules.
             for (const auto &[key, value] : modules) {

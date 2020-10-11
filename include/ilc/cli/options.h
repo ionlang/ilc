@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace ilc::cli {
-    enum class PhaseLevel : uint32_t {
+    enum struct PhaseLevel : uint32_t {
         Lexing,
 
         Parsing,
@@ -44,9 +44,20 @@ namespace ilc::cli {
         });;
 
         /**
-         * Target file path which to write result(s) to.
+         * Target file path which to write executable to.
          */
-        std::string out;
+        std::string outputExecutablePath;
+
+        /**
+         * Target directory path onto which to write output
+         * files to.
+         */
+        std::string outputDirectoryPath;
+
+        /**
+         * The target triple to be passed on to LLVM.
+         */
+        std::string target;
 
         bool doPrintPhases;
 
@@ -68,5 +79,5 @@ namespace ilc::cli {
         bool noVerbose;
     };
 
-    static Options options = Options{};
+    extern Options options;
 }

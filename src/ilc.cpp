@@ -13,6 +13,7 @@
 #include <ilc/jit/jit.h>
 #include <ilc/processing/driver.h>
 #include <ilc/cli/commands.h>
+#include <ilc/misc/util.h>
 
 #define ILC_CLI_VERSION "1.0.0"
 
@@ -71,11 +72,31 @@ void setupCli(CLI::App &app) {
         ->default_val(std::to_string((int)cli::PhaseLevel::CodeGeneration));
 
     app.add_option(
-        "-o,--out",
-        cli::options.out,
-        "The directory onto which to write output files"
+        "-d,--output-directory",
+        cli::options.outputDirectoryPath,
+        "The directory path where output files will be written to"
     )
         ->default_val("build");
+
+    std::string defaultOutputExecutablePath = "program";
+
+    if (!util::isPlatformUnixLike) {
+        defaultOutputExecutablePath += ".exe";
+    }
+
+    app.add_option(
+        "-o,--output-executable",
+        cli::options.outputExecutablePath,
+        "The output executable file name"
+    )
+        ->default_val(defaultOutputExecutablePath);
+
+    app.add_option(
+        "-t,--target",
+        cli::options.target,
+        "The target triple to pass on to LLVM"
+    )
+        ->default_val(llvm::sys::getDefaultTargetTriple());
 
     // Flag(s).
     app.add_flag(
@@ -103,7 +124,7 @@ void setupCli(CLI::App &app) {
     );
 
     cli::jitCommand->add_flag(
-        "-t,--throw",
+        "-w,--throw",
         cli::options.doJitThrow,
         "Throw errors instead of capturing them"
     );
@@ -123,13 +144,11 @@ int main(int argc, char **argv) {
     if (cli::jitCommand->parsed()) {
         jit::registerCommonActions();
 
-        // Inform the user how to exit JIT, and begin the input loop.
         log::info("Entering REPL mode; type '\\quit' to exit");
-
         log::verbose("Actions registered: " + std::to_string(jit::actions.getSize()));
 
         std::string input;
-        JitDriver jitDriver = JitDriver();
+        JitDriver jitDriver{};
 
         while (true) {
             std::cout << ConsoleColor::coat("<> ", ColorKind::ForegroundGray);
@@ -224,32 +243,29 @@ int main(int argc, char **argv) {
         std::string outputFileExtension = std::string(".") + (cli::options.doLlvmIr ? "ll" : "o");
 
         // Create the output directory if it doesn't already exist.
-        if (!std::filesystem::exists(cli::options.out)) {
-            log::verbose("Creating output directory '" + cli::options.out + "'");
+        if (!std::filesystem::exists(cli::options.outputDirectoryPath)) {
+            log::verbose("Creating output directory '" + cli::options.outputDirectoryPath + "'");
 
             // Ensure the directory was created, otherwise fail the process.
-            if (!std::filesystem::create_directory(cli::options.out)) {
+            if (!std::filesystem::create_directory(cli::options.outputDirectoryPath)) {
                 log::error("Output directory could not be created");
 
                 return EXIT_FAILURE;
             }
         }
 
-        // TODO: Make target triple be taken in through options, with default to host.
-        llvm::Triple targetTriple = llvm::Triple(llvm::sys::getDefaultTargetTriple());
-
         bool success = true;
 
         std::vector<std::filesystem::path> outputFilePaths =
             std::vector<std::filesystem::path>();
 
-        log::verbose("Using target triple: " + targetTriple.getTriple());
+        log::verbose("Using target triple: " + cli::options.target);
 
         for (const auto &inputFilePath : cli::options.inputFilePaths) {
             inputStringStream << std::ifstream(inputFilePath).rdbuf();
 
             std::filesystem::path outputFilePath =
-                std::filesystem::path(cli::options.out)
+                std::filesystem::path(cli::options.outputDirectoryPath)
                     .append(inputFilePath)
                     .concat(outputFileExtension);
 
@@ -258,7 +274,7 @@ int main(int argc, char **argv) {
             log::verbose("Generating '" + outputFilePath.string() + "'");
 
             // Stop processing input files if the driver fails to run.
-            if (!driver.process(targetTriple, outputFilePath, inputStringStream.str())) {
+            if (!driver.process(outputFilePath, inputStringStream.str())) {
                 success = false;
 
                 break;
@@ -271,8 +287,8 @@ int main(int argc, char **argv) {
         }
 
         if (!success) {
-            // TODO: Show this message?
-//            log::error("Generation failed");
+            // TODO: Error or verbose?
+            log::verbose("Generation failed");
 
             return EXIT_FAILURE;
         }

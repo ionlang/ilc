@@ -16,6 +16,17 @@ namespace ilc {
         LinkerArgumentBuilder linkerArgumentBuilder =
             LinkerArgumentBuilder(LinkerKind::GCC);
 
+        // NOTE: The 'o' option specifies the output file name.
+        linkerArgumentBuilder.addOption(
+            "o",
+
+            std::filesystem::path(cli::options.outputDirectoryPath)
+                .append(cli::options.outputExecutablePath)
+                .string(),
+
+            true
+        );
+
         for (const auto objectFilePath : this->objectFilePaths) {
             linkerArgumentBuilder.addPath(objectFilePath.string());
         }
@@ -56,8 +67,12 @@ namespace ilc {
             return std::nullopt;
         }
 
+        std::string linkerExecutionCommand = *linkerExecutablePath + *linkerArguments;
+
+        log::verbose("Invoking '" + linkerExecutionCommand + "'");
+
         // NOTE: The linker arguments string begins with a space.
-        int executionExitCode = util::execute(*linkerExecutablePath + *linkerArguments);
+        int executionExitCode = util::execute(linkerExecutionCommand);
 
         if (executionExitCode != 0) {
             log::error("Linking failed with code: " + std::to_string(executionExitCode));

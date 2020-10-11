@@ -14,7 +14,7 @@ namespace ilc {
     private:
         std::filesystem::path outputFilePath;
 
-        std::string input = "";
+        std::string input;
 
         std::optional<ionlang::TokenStream> tokenStream;
 
@@ -25,12 +25,12 @@ namespace ilc {
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
 
-        std::optional<std::vector<llvm::Module *>> lowerToLlvmIr(
+        std::optional<std::vector<llvm::Module*>> lowerToLlvmIr(
             ionshared::Ptr<ionlang::Module> module,
             ionshared::Ptr<DiagnosticVector> diagnostics
         );
 
-        bool writeObjectFile(llvm::Triple targetTriple, llvm::Module *module);
+        bool writeObjectFile(llvm::Module* module);
 
         void tryThrow(std::exception exception);
 
@@ -44,7 +44,6 @@ namespace ilc {
          * otherwise.
          */
         bool process(
-            llvm::Triple targetTriple,
             std::filesystem::path outputFilePath,
             std::string input
         );

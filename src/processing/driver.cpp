@@ -4,7 +4,6 @@
 #include <llvm/Analysis/TargetLibraryInfo.h>
 #include <llvm/CodeGen/CommandFlags.inc>
 #include <llvm/CodeGen/LinkAllCodegenComponents.h>
-#include <llvm/CodeGen/MIRParser/MIRParser.h>
 #include <llvm/CodeGen/MachineFunctionPass.h>
 #include <llvm/CodeGen/MachineModuleInfo.h>
 #include <llvm/CodeGen/TargetPassConfig.h>
@@ -18,7 +17,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <ionshared/diagnostics/diagnostic.h>
 #include <ionshared/llvm/llvm_module.h>
-#include <ionir/passes/codegen/llvm_codegen_pass.h>
+#include <ionir/passes/lowering/llvm_lowering_pass.h>
 #include <ionir/passes/type_system/type_check_pass.h>
 #include <ionir/passes/type_system/borrow_check_pass.h>
 #include <ionir/passes/semantic/entry_point_check_pass.h>
@@ -27,11 +26,9 @@
 #include <ionlang/passes/semantic/name_resolution_pass.h>
 #include <ionlang/lexical/lexer.h>
 #include <ionlang/syntax/parser.h>
-#include <ilc/passes/ionlang/ionlang_printer_pass.h>
 #include <ilc/passes/ionlang/ionlang_logger_pass.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
 #include <ilc/cli/log.h>
-#include <ilc/cli/commands.h>
 #include <ilc/processing/linker_invoker.h>
 #include <ilc/processing/driver.h>
 
@@ -48,7 +45,7 @@ namespace ilc {
 
             << std::endl;
 
-        uint32_t counter = 0;
+        size_t counter = 0;
 
         for (auto &token : tokens) {
             // TODO: Only do if specified by option 'trim'.
@@ -118,7 +115,7 @@ namespace ilc {
         return std::nullopt;
     }
 
-    std::optional<std::vector<llvm::Module *>> Driver::lowerToLlvmIr(
+    std::optional<std::vector<llvm::Module*>> Driver::lowerToLlvmIr(
         ionshared::Ptr<ionlang::Module> module,
         ionshared::Ptr<DiagnosticVector> diagnostics
     ) {
@@ -239,13 +236,14 @@ namespace ilc {
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
-            ionir::LlvmCodegenPass ionIrLlvmCodegenPass = ionir::LlvmCodegenPass(passContext);
+            ionir::LlvmLoweringPass ionIrLlvmLoweringPass =
+                ionir::LlvmLoweringPass(passContext);
 
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
-            ionIrLlvmCodegenPass.visitModule(*ionIrModuleBuffer);
+            ionIrLlvmLoweringPass.visitModule(*ionIrModuleBuffer);
 
             std::map<std::string, llvm::Module *> modules =
-                ionIrLlvmCodegenPass.getModules()->unwrap();
+                ionIrLlvmLoweringPass.getModules()->unwrap();
 
             if (modules.empty()) {
                 std::cout
@@ -287,7 +285,7 @@ namespace ilc {
         return std::nullopt;
     }
 
-    bool Driver::writeObjectFile(llvm::Triple targetTriple, llvm::Module *module) {
+    bool Driver::writeObjectFile(llvm::Module* module) {
         // Initialize targets for emitting object code.
         llvm::InitializeAllTargetInfos();
         llvm::InitializeAllTargets();
@@ -295,9 +293,12 @@ namespace ilc {
         llvm::InitializeAllAsmParsers();
         llvm::InitializeAllAsmPrinters();
 
+        llvm::Triple targetTriple{cli::options.target};
         std::string error;
 
-        const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
+        module->setTargetTriple(targetTriple.getTriple());
+
+        const llvm::Target* target = llvm::TargetRegistry::lookupTarget(
             targetTriple.getTriple(),
             error
         );
@@ -320,18 +321,16 @@ namespace ilc {
         StringMap<bool> hostFeatures = StringMap<bool>();
 
         if (sys::getHostCPUFeatures(hostFeatures)) {
-            for (auto &feature : hostFeatures) {
+            for (auto& feature : hostFeatures) {
                 subtargetFeatures.AddFeature(feature.first(), feature.second);
             }
         }
 
         std::string cpuFeatures = subtargetFeatures.getString();
-        llvm::TargetOptions targetOptions = llvm::TargetOptions();
+        llvm::TargetOptions targetOptions{};
+        llvm::Optional<llvm::Reloc::Model> relocationModel{};
 
-        llvm::Optional<llvm::Reloc::Model> relocationModel =
-            llvm::Optional<llvm::Reloc::Model>();
-
-        llvm::TargetMachine *targetMachine = target->createTargetMachine(
+        llvm::TargetMachine* targetMachine = target->createTargetMachine(
             targetTriple.getTriple(),
             cpuName,
             cpuFeatures,
@@ -349,7 +348,7 @@ namespace ilc {
 //        llvmModule->setDataLayout(targetMachine->createDataLayout());
 //        llvmModule->setTargetTriple(targetTriple.getTriple());
 
-        std::error_code errorCode = std::error_code();
+        std::error_code errorCode{};
 
         llvm::raw_fd_ostream destination = llvm::raw_fd_ostream(
             this->outputFilePath.string(),
@@ -363,10 +362,10 @@ namespace ilc {
             return false;
         }
 
-        llvm::legacy::PassManager passManager;
+        llvm::legacy::PassManager passManager{};
 
-        llvm::TargetMachine::CodeGenFileType outputFileType =
-            llvm::TargetMachine::CodeGenFileType::CGFT_ObjectFile;
+        llvm::CodeGenFileType outputFileType =
+            llvm::CodeGenFileType::CGFT_ObjectFile;
 
         // NOTE: Returns true upon failure.
         bool failed = targetMachine->addPassesToEmitFile(
@@ -406,7 +405,6 @@ namespace ilc {
     }
 
     bool Driver::process(
-        llvm::Triple targetTriple,
         std::filesystem::path outputFilePath,
         std::string input
     ) {
@@ -452,6 +450,6 @@ namespace ilc {
         }
 
         // TODO: Processing only first module until implemented support for multiple (consider multiple modules inside a single file).
-        return this->writeObjectFile(targetTriple, llvmModules.value()[0]);
+        return this->writeObjectFile(llvmModules.value()[0]);
     }
 }
