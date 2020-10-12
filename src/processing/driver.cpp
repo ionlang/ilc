@@ -34,7 +34,7 @@
 
 namespace ilc {
     std::vector<ionlang::Token> Driver::lex() {
-        ionlang::Lexer lexer = ionlang::Lexer(this->input);
+        ionlang::Lexer lexer{this->input};
         std::vector<ionlang::Token> tokens = lexer.scan();
 
         std::cout
@@ -47,7 +47,7 @@ namespace ilc {
 
         size_t counter = 0;
 
-        for (auto &token : tokens) {
+        for (auto& token : tokens) {
             // TODO: Only do if specified by option 'trim'.
             if (counter == 10) {
                 std::cout << ConsoleColor::coat("... trimmed ...", ColorKind::ForegroundGray)
@@ -90,10 +90,10 @@ namespace ilc {
 
             log::error("Parser: Could not parse module");
 
-            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+            DiagnosticPrinter diagnosticPrinter{DiagnosticPrinterOpts{
                 this->input,
                 tokenStream
-            });
+            }};
 
             DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
@@ -107,7 +107,7 @@ namespace ilc {
                 log::error("Could not create stack-trace");
             }
         }
-        catch (std::exception &exception) {
+        catch (std::exception& exception) {
             log::error("Parser: " + std::string(exception.what()));
             this->tryThrow(exception);
         }
@@ -129,7 +129,7 @@ namespace ilc {
              * Create a pass manager instance & run applicable passes
              * over the resulting AST.
              */
-            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
+            ionlang::PassManager ionLangPassManager{};
 
             ionshared::Ptr<ionshared::PassContext> passContext =
                 std::make_shared<ionshared::PassContext>(diagnostics);
@@ -165,7 +165,7 @@ namespace ilc {
             ionLangPassManager.run(ionLangAst);
 
             // TODO: CRITICAL: Should be used with the PassManager instance, as a normal pass instead of manually invoking the visit functions.
-            ionlang::IonIrLoweringPass ionIrLoweringPass = ionlang::IonIrLoweringPass(passContext);
+            ionlang::IonIrLoweringPass ionIrLoweringPass{passContext};
 
             // TODO: What if multiple top-level constructs are defined in-line? Use ionir::Driver (finish it first) and use its resulting Ast. (Additional note above).
             // Visit the parsed module construct.
@@ -181,7 +181,7 @@ namespace ilc {
                 *ionIrModuleBuffer
             };
 
-            ionir::PassManager ionIrPassManager = ionir::PassManager();
+            ionir::PassManager ionIrPassManager{};
 
             // Register passes.
             if (cli::options.passes.contains(cli::PassKind::EntryPointCheck)) {
@@ -212,10 +212,10 @@ namespace ilc {
             // Run the pass manager on the IonIR AST.
             ionIrPassManager.run(ionIrAst);
 
-            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+            DiagnosticPrinter diagnosticPrinter{DiagnosticPrinterOpts{
                 this->input,
                 *this->tokenStream
-            });
+            }};
 
             DiagnosticStackTraceResult diagnosticStackTraceResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
@@ -236,13 +236,12 @@ namespace ilc {
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
-            ionir::LlvmLoweringPass ionIrLlvmLoweringPass =
-                ionir::LlvmLoweringPass(passContext);
+            ionir::LlvmLoweringPass ionIrLlvmLoweringPass{passContext};
 
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
             ionIrLlvmLoweringPass.visitModule(*ionIrModuleBuffer);
 
-            std::map<std::string, llvm::Module *> modules =
+            std::map<std::string, llvm::Module*> modules =
                 ionIrLlvmLoweringPass.getModules()->unwrap();
 
             if (modules.empty()) {
@@ -257,10 +256,10 @@ namespace ilc {
                 return std::nullopt;
             }
 
-            std::vector<llvm::Module *> result = std::vector<llvm::Module *>();
+            std::vector<llvm::Module*> result{};
 
             // Display the resulting code of all the modules.
-            for (const auto &[key, value] : modules) {
+            for (const auto& [key, value] : modules) {
                 std::cout
                     << ConsoleColor::coat(
                         "--- LLVM code-generation: " + key + " ---",
@@ -269,7 +268,7 @@ namespace ilc {
 
                     << std::endl;
 
-                ionshared::LlvmModule llvmModule = ionshared::LlvmModule(value);
+                ionshared::LlvmModule llvmModule{value};
 
                 llvmModule.printIr();
                 result.push_back(value);
@@ -277,7 +276,7 @@ namespace ilc {
 
             return result;
         }
-        catch (std::exception &exception) {
+        catch (std::exception& exception) {
             log::error("LLVM code-generation: " + std::string(exception.what()));
             this->tryThrow(exception);
         }
@@ -317,8 +316,8 @@ namespace ilc {
         std::string cpuName = llvm::sys::getHostCPUName();
 
         // Build CPU features.
-        SubtargetFeatures subtargetFeatures = SubtargetFeatures();
-        StringMap<bool> hostFeatures = StringMap<bool>();
+        SubtargetFeatures subtargetFeatures{};
+        StringMap<bool> hostFeatures{};
 
         if (sys::getHostCPUFeatures(hostFeatures)) {
             for (auto& feature : hostFeatures) {
@@ -350,11 +349,11 @@ namespace ilc {
 
         std::error_code errorCode{};
 
-        llvm::raw_fd_ostream destination = llvm::raw_fd_ostream(
+        llvm::raw_fd_ostream destination{
             this->outputFilePath.string(),
             errorCode,
             llvm::sys::fs::OF_None
-        );
+        };
 
         if (errorCode) {
             log::error("Could not open output file: " + errorCode.message());
@@ -390,7 +389,7 @@ namespace ilc {
     bool Driver::link(std::vector<std::filesystem::path> objectFilePaths) {
         log::verbose("Linking " + std::to_string(objectFilePaths.size()) + " file(s)");
 
-        LinkerInvoker linkerInvoker = LinkerInvoker(objectFilePaths);
+        LinkerInvoker linkerInvoker{objectFilePaths};
 
         // TODO: Pass the linker kind from options.
         std::optional<int> invocationResult = linkerInvoker.invoke(LinkerKind::GCC);
