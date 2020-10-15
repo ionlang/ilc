@@ -31,7 +31,8 @@ jobs:
             name: "Ubuntu Latest Clang",
             artifact: "linux-gnu.7z",
             os: ubuntu-latest,
-            cc: "clang", cxx: "clang++"
+            cc: "clang",
+            cxx: "clang++"
           }
     #           - {
     #             name: "macOS Latest Clang", artifact: "macOS.7z",

@@ -100,6 +100,15 @@ endif()
 
 find_package(CLI11 CONFIG)
 
+# LLVM dependency.
+find_package(LLVM 10.0.0 REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+
 # Setup versioning.
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
@@ -113,25 +122,19 @@ file(
     "src/*.cpp"
 )
 
-# Setup LLVM include directories.
-find_package(LLVM 10.0.0 REQUIRED CONFIG)
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
+# Linux installation support.
+include(GNUInstallDirs)
 
 # Specify that this project is an executable.
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable("${PROJECT_NAME}" ${SOURCES})
 
 llvm_map_components_to_libnames(llvm_libs all)
 
 # Link against libraries.
-target_link_libraries("${PROJECT_NAME}" PRIVATE LLVM ionshared ionir ionlang)
+target_link_libraries("${PROJECT_NAME}" LLVM ionshared ionir ionlang)
 
 # Provide include directories to be used in the build command. Position in file matters.
-target_include_directories(${PROJECT_NAME} PUBLIC "src" "include" "libs")
+target_include_directories("${PROJECT_NAME}" PUBLIC "src" "include" "libs")
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(ILC_BUILD_TESTS "Build tests" OFF)
