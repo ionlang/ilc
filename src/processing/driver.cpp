@@ -1,7 +1,6 @@
 #include <memory>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/ADT/Triple.h>
-#include <llvm/Analysis/TargetLibraryInfo.h>
 #include <llvm/CodeGen/CommandFlags.inc>
 #include <llvm/CodeGen/LinkAllCodegenComponents.h>
 #include <llvm/CodeGen/MachineFunctionPass.h>
@@ -441,7 +440,7 @@ namespace ilc {
 //            return true;
 //        }
 
-        std::optional<std::vector<llvm::Module *>> llvmModules =
+        std::optional<std::vector<llvm::Module*>> llvmModules =
             this->lowerToLlvmIr(*ionLangModules, diagnostics);
 
         if (!llvmModules.has_value() || llvmModules->empty()) {
