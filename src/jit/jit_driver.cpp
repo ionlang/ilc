@@ -172,6 +172,8 @@ namespace ilc {
                     << " error(s) encountered ---"
                     << std::endl;
 
+                diagnosticPrinter.printDiagnosticStackTrace(diagnostics);
+
                 return;
             }
 
