@@ -109,6 +109,7 @@ find_package(LLVM 10.0.0 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
+# Include LLVM source directories (for lexical support, etc.). The SYSTEM symbol supposedly marks the directory to suppress warning(s).
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -128,8 +129,6 @@ file(
 # Specify that this project is an executable.
 add_executable("${PROJECT_NAME}" ${SOURCES})
 
-llvm_map_components_to_libnames(llvm_libs all)
-
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -140,6 +139,8 @@ target_include_directories(
     # Comment out as it's causing cannot find included file '/project_name'.
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
+
+llvm_map_components_to_libnames(llvm_libs all)
 
 # Link against libraries.
 target_link_libraries("${PROJECT_NAME}" LLVM ionshared ionir ionlang)
@@ -154,11 +155,11 @@ if(ILC_BUILD_TESTS)
 endif()
 
 # Add install target.
-install(
-    TARGETS ${LIBRARY_TARGET_NAME}
-    EXPORT ${PROJECT_NAME}
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
-)
+#install(
+#    TARGETS ${LIBRARY_TARGET_NAME}
+#    EXPORT ${PROJECT_NAME}
+#    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
+#)
 
 # Support for CLion install target.
 add_custom_target(
