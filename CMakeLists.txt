@@ -14,6 +14,9 @@ set(PROJECT_URL "https://github.com/ionlang/ilc")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
+# Linux installation support.
+include(GNUInstallDirs)
+
 # Dependencies: ionshared.
 find_package(ionshared QUIET)
 
@@ -122,19 +125,23 @@ file(
     "src/*.cpp"
 )
 
-# Linux installation support.
-include(GNUInstallDirs)
-
 # Specify that this project is an executable.
 add_executable("${PROJECT_NAME}" ${SOURCES})
 
 llvm_map_components_to_libnames(llvm_libs all)
 
+target_include_directories(
+    ${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+
+    # Comment out as it's causing cannot find included file '/project_name'.
+    #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+)
+
 # Link against libraries.
 target_link_libraries("${PROJECT_NAME}" LLVM ionshared ionir ionlang)
-
-# Provide include directories to be used in the build command. Position in file matters.
-target_include_directories("${PROJECT_NAME}" PUBLIC "src" "include" "libs")
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(ILC_BUILD_TESTS "Build tests" OFF)
