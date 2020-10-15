@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 # General project information.
 set(PROJECT_URL "https://github.com/ionlang/ilc")
 
-set(CMAKE_EXE_LINKER_FLAGS "-static")
+#set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 # Setup source and build directories.
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
