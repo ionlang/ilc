@@ -28,7 +28,8 @@ jobs:
           #             cc: "gcc", cxx: "g++"
           #           }
           - {
-            name: "Ubuntu Latest Clang", artifact: "Linux.7z",
+            name: "Ubuntu Latest Clang",
+            artifact: "linux.7z",
             os: ubuntu-latest,
             cc: "clang", cxx: "clang++"
           }

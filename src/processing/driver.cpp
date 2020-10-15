@@ -4,7 +4,6 @@
 #include <llvm/CodeGen/CommandFlags.inc>
 #include <llvm/CodeGen/LinkAllCodegenComponents.h>
 #include <llvm/CodeGen/MachineFunctionPass.h>
-#include <llvm/CodeGen/MachineModuleInfo.h>
 #include <llvm/CodeGen/TargetPassConfig.h>
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/IR/DiagnosticInfo.h>
