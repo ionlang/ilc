@@ -140,7 +140,7 @@ target_include_directories(
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
-llvm_map_components_to_libnames(llvm_libs all analysis bitreader bitstreamreader bitwriter codegen core engine executionengine ipo irreader linker lto mc mca native nativecodegen object option passes support symbolize tablegen target xray)
+llvm_map_components_to_libnames(llvm_libs all analysis bitwriter codegen core engine executionengine ipo irreader linker lto native nativecodegen option passes support target xray)
 
 # Link against libraries.
 target_link_libraries("${PROJECT_NAME}" PRIVATE ${llvm_libs} ionshared ionir ionlang)
