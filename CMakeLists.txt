@@ -110,7 +110,7 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Include LLVM source directories (for lexical support, etc.). The SYSTEM symbol supposedly marks the directory to suppress warning(s).
-include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Setup versioning.
@@ -140,7 +140,7 @@ target_include_directories(
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
-llvm_map_components_to_libnames(llvm_libs all)
+llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # Link against libraries.
 target_link_libraries("${PROJECT_NAME}" PRIVATE ${llvm_libs} ionshared ionir ionlang)
