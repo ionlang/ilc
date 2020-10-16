@@ -127,7 +127,7 @@ file(
 )
 
 # Specify that this project is an executable.
-add_library("${PROJECT_NAME}" ${SOURCES})
+add_executable("${PROJECT_NAME}" ${SOURCES})
 
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
@@ -143,7 +143,7 @@ target_include_directories(
 llvm_map_components_to_libnames(llvm_libs all)
 
 # Link against libraries.
-target_link_libraries("${PROJECT_NAME}" LLVM ionshared ionir ionlang)
+target_link_libraries("${PROJECT_NAME}" PRIVATE ${llvm_libs} ionshared ionir ionlang)
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(ILC_BUILD_TESTS "Build tests" OFF)
