@@ -140,7 +140,7 @@ target_include_directories(
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
-llvm_map_components_to_libnames(llvm_libs aggressiveinstcombine all analysis asmparser asmprinter binaryformat bitreader bitstreamreader bitwriter cfguard codegen core coroutines coverage demangle dlltooldriver dwarflinker engine executionengine frontendopenmp globalisel instcombine instrumentation interpreter ipo irreader libdriver lineeditor linker lto mc mca native nativecodegen objcarcopts object objectyaml option passes profiledata remarks runtimedyld scalaropts selectiondag support symbolize tablegen target textapi transformutils vectorize windowsmanifest xray)
+llvm_map_components_to_libnames(llvm_libs all analysis bitreader bitstreamreader bitwriter codegen core engine executionengine ipo irreader linker lto mc mca native nativecodegen object option passes support symbolize tablegen target xray)
 
 # Link against libraries.
 target_link_libraries("${PROJECT_NAME}" PRIVATE ${llvm_libs} ionshared ionir ionlang)
