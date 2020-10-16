@@ -13,6 +13,7 @@ set(PROJECT_URL "https://github.com/ionlang/ilc")
 # Setup source and build directories.
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_CXX_FLAGS  "-L~/.clang")
 
 # Linux installation support.
 include(GNUInstallDirs)
