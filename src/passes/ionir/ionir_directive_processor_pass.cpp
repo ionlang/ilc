@@ -5,7 +5,7 @@ namespace ilc {
     IonIrDirectiveProcessorPass::IonIrDirectiveProcessorPass(
         ionshared::Ptr<ionshared::PassContext> context,
         ionshared::OptPtr<std::stringstream> includeOutputStream
-    ) :
+    ) noexcept :
         ionir::Pass(std::move(context)),
         includeOutputStream(includeOutputStream) {
         //

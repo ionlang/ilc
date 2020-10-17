@@ -14,7 +14,7 @@ namespace ilc {
         explicit IonIrDirectiveProcessorPass(
             ionshared::Ptr<ionshared::PassContext> context,
             ionshared::OptPtr<std::stringstream> includeOutputStream = std::nullopt
-        );
+        ) noexcept;
 
         void visitDirective(ionir::Directive node) override;
     };

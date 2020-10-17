@@ -13,8 +13,7 @@ namespace ilc {
     }
 
     std::string LinkerInvoker::prepareGccArguments() {
-        LinkerArgumentBuilder linkerArgumentBuilder =
-            LinkerArgumentBuilder(LinkerKind::GCC);
+        LinkerArgumentBuilder linkerArgumentBuilder{LinkerKind::GCC};
 
         // NOTE: The 'o' option specifies the output file name.
         linkerArgumentBuilder.addOption(

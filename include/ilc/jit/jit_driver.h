@@ -9,7 +9,7 @@
 namespace ilc {
     class JitDriver {
     private:
-        std::string input = "";
+        std::string input;
 
         std::optional<ionlang::TokenStream> tokenStream;
 
@@ -28,6 +28,8 @@ namespace ilc {
         void tryThrow(std::exception exception);
 
     public:
+        JitDriver() noexcept;
+
         void run(std::string input);
     };
 }

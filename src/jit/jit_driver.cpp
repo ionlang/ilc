@@ -16,7 +16,7 @@
 
 namespace ilc {
     std::vector<ionlang::Token> JitDriver::lex() {
-        ionlang::Lexer lexer = ionlang::Lexer(this->input);
+        ionlang::Lexer lexer{this->input};
         std::vector<ionlang::Token> tokens = lexer.scan();
 
         std::cout
@@ -38,12 +38,12 @@ namespace ilc {
         std::vector<ionlang::Token> tokens,
         ionshared::Ptr<DiagnosticVector> diagnostics
     ) {
-        ionlang::TokenStream tokenStream = ionlang::TokenStream(tokens);
+        ionlang::TokenStream tokenStream{tokens};
 
-        ionlang::Parser parser = ionlang::Parser(
+        ionlang::Parser parser{
             tokenStream,
             std::make_shared<ionshared::DiagnosticBuilder>(diagnostics)
-        );
+        };
 
         this->tokenStream = tokenStream;
 
@@ -61,10 +61,11 @@ namespace ilc {
 
             log::error("Parser: Could not parse module");
 
-            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+            DiagnosticPrinter diagnosticPrinter{
+                DiagnosticPrinterOpts{
                 this->input,
                 tokenStream
-            });
+            }};
 
             DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
@@ -221,6 +222,12 @@ namespace ilc {
         if (cli::options.doJitThrow) {
             throw exception;
         }
+    }
+
+    JitDriver::JitDriver() noexcept :
+        input(),
+        tokenStream(std::nullopt) {
+        //
     }
 
     void JitDriver::run(std::string input) {

@@ -4,7 +4,7 @@
 #include <ilc/misc/file_system.h>
 
 namespace ilc {
-    bool FileSystem::doesPathExist(const std::string &name) {
+    bool FileSystem::doesPathExist(const std::string& name) {
         struct stat buffer;
 
         return stat(name.c_str(), &buffer) == 0;
@@ -16,7 +16,7 @@ namespace ilc {
             return std::nullopt;
         }
 
-        std::ifstream stream = std::ifstream(path);
+        std::ifstream stream{path};
         std::stringstream buffer;
 
         buffer << stream.rdbuf();

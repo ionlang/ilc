@@ -143,7 +143,6 @@ int main(int argc, char **argv) {
 
     if (cli::jitCommand->parsed()) {
         jit::registerCommonActions();
-
         log::info("Entering REPL mode; type '\\quit' to exit");
         log::verbose("Actions registered: " + std::to_string(jit::actions.getSize()));
 
@@ -238,8 +237,8 @@ int main(int argc, char **argv) {
     else if (!cli::options.inputFilePaths.empty()) {
         log::verbose("Processing " + std::to_string(cli::options.inputFilePaths.size()) + " input file(s)");
 
-        std::stringstream inputStringStream = std::stringstream();
-        Driver driver = Driver();
+        std::stringstream inputStringStream{};
+        Driver driver{};
         std::string outputFileExtension = std::string(".") + (cli::options.doLlvmIr ? "ll" : "o");
 
         // Create the output directory if it doesn't already exist.
@@ -255,9 +254,7 @@ int main(int argc, char **argv) {
         }
 
         bool success = true;
-
-        std::vector<std::filesystem::path> outputFilePaths =
-            std::vector<std::filesystem::path>();
+        std::vector<std::filesystem::path> outputFilePaths{};
 
         log::verbose("Using target triple: " + cli::options.target);
 
