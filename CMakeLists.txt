@@ -108,7 +108,6 @@ find_package(LLVM 10.0.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-message(STATUS "Components mapped to libnames: ${LLVM_LIBRARIES}")
 
 # Include LLVM source directories (for lexical support, etc.). The SYSTEM symbol supposedly marks the directory to suppress warning(s).
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -141,8 +140,11 @@ target_include_directories(
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
+#llvm_map_components_to_libnames(llvm_libs all)
+llvm_config("${PROJECT_NAME}" support core irreader)
+
 # Link against libraries.
-target_link_libraries("${PROJECT_NAME}" PRIVATE ${LLVM_LIBRARIES} ionshared ionir ionlang)
+target_link_libraries("${PROJECT_NAME}" PRIVATE ionshared ionir ionlang)
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(ILC_BUILD_TESTS "Build tests" OFF)
