@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 # General project information.
 set(PROJECT_URL "https://github.com/ionlang/ilc")
 
-#set(CMAKE_EXE_LINKER_FLAGS "-static")
+# Build project statically.
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 # Setup source and build directories.
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -140,11 +141,11 @@ target_include_directories(
     #$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
-#llvm_map_components_to_libnames(llvm_libs all)
-llvm_config("${PROJECT_NAME}" support core irreader)
+llvm_map_components_to_libnames(llvm_libs all)
+#llvm_config("${PROJECT_NAME}" support core irreader)
 
 # Link against libraries.
-target_link_libraries("${PROJECT_NAME}" PRIVATE ionshared ionir ionlang)
+target_link_libraries("${PROJECT_NAME}" PRIVATE ${llvm_libs} ionshared ionir ionlang)
 
 # Setup unit testing using Google Test (GTest) if applicable. This binds the CMakeLists.txt on the test project.
 option(ILC_BUILD_TESTS "Build tests" OFF)
