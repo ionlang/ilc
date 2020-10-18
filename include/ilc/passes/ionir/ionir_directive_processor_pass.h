@@ -12,7 +12,7 @@ namespace ilc {
         IONSHARED_PASS_ID;
 
         explicit IonIrDirectiveProcessorPass(
-            ionshared::Ptr<ionshared::PassContext> context,
+            std::shared_ptr<ionshared::PassContext> context,
             ionshared::OptPtr<std::stringstream> includeOutputStream = std::nullopt
         ) noexcept;
 

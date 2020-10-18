@@ -99,11 +99,11 @@ namespace ilc {
         explicit DiagnosticPrinter(DiagnosticPrinterOpts opts);
 
         DiagnosticStackTraceResult createDiagnosticStackTrace(
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
 
         bool printDiagnosticStackTrace(
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
     };
 }

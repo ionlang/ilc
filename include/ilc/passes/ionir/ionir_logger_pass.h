@@ -7,9 +7,9 @@ namespace ilc {
         IONSHARED_PASS_ID;
 
         explicit IonIrLoggerPass(
-            ionshared::Ptr<ionshared::PassContext> context
+            std::shared_ptr<ionshared::PassContext> context
         );
 
-        void visit(ionshared::Ptr<ionir::Construct> node) override;
+        void visit(std::shared_ptr<ionir::Construct> node) override;
     };
 }

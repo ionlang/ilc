@@ -5,13 +5,13 @@
 
 namespace ilc {
     IonIrLoggerPass::IonIrLoggerPass(
-        ionshared::Ptr<ionshared::PassContext> context
+        std::shared_ptr<ionshared::PassContext> context
     ) :
         ionir::Pass(std::move(context)) {
         //
     }
 
-    void IonIrLoggerPass::visit(ionshared::Ptr<ionir::Construct> node) {
+    void IonIrLoggerPass::visit(std::shared_ptr<ionir::Construct> node) {
         ionir::ConstructKind constructKind = node->constructKind;
         std::optional<std::string> constructName = ionir::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";

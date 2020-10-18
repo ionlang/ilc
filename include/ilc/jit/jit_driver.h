@@ -17,12 +17,12 @@ namespace ilc {
 
         ionshared::OptPtr<ionlang::Module> parse(
             std::vector<ionlang::Token> tokens,
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
 
         void codegen(
-            ionshared::Ptr<ionlang::Module> ast,
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<ionlang::Module> ast,
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
 
         void tryThrow(std::exception exception);

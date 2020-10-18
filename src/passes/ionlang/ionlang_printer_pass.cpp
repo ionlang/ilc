@@ -15,7 +15,7 @@ namespace ilc {
     }
 
     IonLangPrinterPass::IonLangPrinterPass(
-        ionshared::Ptr<ionshared::PassContext> context,
+        std::shared_ptr<ionshared::PassContext> context,
         uint32_t maxDepth
     ) :
         ionlang::Pass(context),
@@ -23,7 +23,7 @@ namespace ilc {
         //
     }
 
-    void IonLangPrinterPass::visit(ionshared::Ptr<ionlang::Construct> construct) {
+    void IonLangPrinterPass::visit(std::shared_ptr<ionlang::Construct> construct) {
         std::cout
             << this->makeSpaces(this->depth)
             << "Node: "

@@ -36,7 +36,7 @@ namespace ilc {
 
     ionshared::OptPtr<ionlang::Module> JitDriver::parse(
         std::vector<ionlang::Token> tokens,
-        ionshared::Ptr<DiagnosticVector> diagnostics
+        std::shared_ptr<DiagnosticVector> diagnostics
     ) {
         ionlang::TokenStream tokenStream{tokens};
 
@@ -88,8 +88,8 @@ namespace ilc {
     }
 
     void JitDriver::codegen(
-        ionshared::Ptr<ionlang::Module> module,
-        ionshared::Ptr<DiagnosticVector> diagnostics
+        std::shared_ptr<ionlang::Module> module,
+        std::shared_ptr<DiagnosticVector> diagnostics
     ) {
         try {
             // TODO: Creating mock AST?
@@ -103,7 +103,7 @@ namespace ilc {
              */
             ionlang::PassManager ionLangPassManager = ionlang::PassManager();
 
-            ionshared::Ptr<ionshared::PassContext> passContext =
+            std::shared_ptr<ionshared::PassContext> passContext =
                 std::make_shared<ionshared::PassContext>(diagnostics);
 
             // Register all passes to be used by the pass manager.
@@ -235,7 +235,7 @@ namespace ilc {
 
         std::vector<ionlang::Token> tokens = this->lex();
 
-        ionshared::Ptr<DiagnosticVector> diagnostics =
+        std::shared_ptr<DiagnosticVector> diagnostics =
             std::make_shared<DiagnosticVector>();
 
         ionshared::OptPtr<ionlang::Module> module = this->parse(tokens, diagnostics);

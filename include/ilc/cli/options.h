@@ -77,6 +77,9 @@ namespace ilc::cli {
         bool noColor;
 
         bool noVerbose;
+
+        // TODO: Temporary.
+        bool temp_nameResOnly;
     };
 
     extern Options options;

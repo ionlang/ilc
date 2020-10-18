@@ -22,12 +22,12 @@ namespace ilc {
 
         ionshared::OptPtr<ionlang::Module> parse(
             std::vector<ionlang::Token> tokens,
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
 
         std::optional<std::vector<llvm::Module*>> lowerToLlvmIr(
-            ionshared::Ptr<ionlang::Module> module,
-            ionshared::Ptr<DiagnosticVector> diagnostics
+            std::shared_ptr<ionlang::Module> module,
+            std::shared_ptr<DiagnosticVector> diagnostics
         );
 
         bool writeObjectFile(llvm::Module* module);

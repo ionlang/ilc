@@ -359,7 +359,7 @@ namespace ilc {
     }
 
     DiagnosticStackTraceResult DiagnosticPrinter::createDiagnosticStackTrace(
-        ionshared::Ptr<DiagnosticVector> diagnostics
+        std::shared_ptr<DiagnosticVector> diagnostics
     ) {
         DiagnosticStackTraceResult result = std::make_pair(std::nullopt, 0);
 
@@ -409,7 +409,7 @@ namespace ilc {
         return result;
     }
 
-    bool DiagnosticPrinter::printDiagnosticStackTrace(ionshared::Ptr<DiagnosticVector> diagnostics) {
+    bool DiagnosticPrinter::printDiagnosticStackTrace(std::shared_ptr<DiagnosticVector> diagnostics) {
         DiagnosticStackTraceResult diagnosticStackTraceResult =
             this->createDiagnosticStackTrace(diagnostics);
 

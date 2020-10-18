@@ -67,6 +67,9 @@ void setupCli(CLI::App &app) {
 //    })
 //        ->default_val("macro-expansion,name-resolution,type-check,borrow-check");
 
+    // TODO: Temporary for debugging.
+    app.add_flag("-n,--name-resolution-only", cli::options.temp_nameResOnly);
+
     app.add_option("-l,--phase-level", cli::options.phaseLevel)
         ->check(CLI::Range(0, 2))
         ->default_val(std::to_string((int)cli::PhaseLevel::CodeGeneration));
@@ -138,6 +141,12 @@ int main(int argc, char **argv) {
     // Parse arguments.
     CLI11_PARSE(app, argc, argv);
 
+    // TODO: Temporary.
+    if (cli::options.temp_nameResOnly) {
+        cli::options.passes.clear();
+        cli::options.passes.insert(cli::PassKind::NameResolution);
+    }
+
     // Static initialization(s).
     ionlang::static_init::init();
 
@@ -199,14 +208,14 @@ int main(int argc, char **argv) {
     }
     else if (cli::astCommand->parsed()) {
         // TODO: Hard-coded debugging test.
-        ionshared::Ptr<ionir::Args> args = std::make_shared<ionir::Args>();
-        ionshared::Ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
+        std::shared_ptr<ionir::Args> args = std::make_shared<ionir::Args>();
+        std::shared_ptr<ionir::VoidType> returnType = std::make_shared<ionir::VoidType>();
 
         // TODO: Module is nullptr.
-        ionshared::Ptr<ionir::Prototype> prototype =
+        std::shared_ptr<ionir::Prototype> prototype =
             std::make_shared<ionir::Prototype>("foobar", args, returnType, nullptr);
 
-        std::queue<ionshared::Ptr<ionir::Construct>> childrenQueue = {};
+        std::queue<std::shared_ptr<ionir::Construct>> childrenQueue = {};
 
         // Push initial child.
         childrenQueue.push(prototype->nativeCast());
@@ -217,7 +226,7 @@ int main(int argc, char **argv) {
         while (!childrenQueue.empty()) {
             childrenQueue.pop();
 
-            ionshared::Ptr<ionir::Construct> child = childrenQueue.back();
+            std::shared_ptr<ionir::Construct> child = childrenQueue.back();
             ionir::Ast innerChildren = child->getChildrenNodes();
 
             std::cout << "-- "

@@ -15,10 +15,10 @@ namespace ilc {
         const uint32_t maxDepth;
 
         explicit IonLangPrinterPass(
-            ionshared::Ptr<ionshared::PassContext> context,
+            std::shared_ptr<ionshared::PassContext> context,
             uint32_t maxDepth = 100
         );
 
-        void visit(ionshared::Ptr<ionlang::Construct> construct) override;
+        void visit(std::shared_ptr<ionlang::Construct> construct) override;
     };
 }

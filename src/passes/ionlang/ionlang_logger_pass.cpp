@@ -4,13 +4,13 @@
 
 namespace ilc {
     IonLangLoggerPass::IonLangLoggerPass(
-        ionshared::Ptr<ionshared::PassContext> context
+        std::shared_ptr<ionshared::PassContext> context
     ) :
         ionlang::Pass(std::move(context)) {
         //
     }
 
-    void IonLangLoggerPass::visit(ionshared::Ptr<ionlang::Construct> node) {
+    void IonLangLoggerPass::visit(std::shared_ptr<ionlang::Construct> node) {
         ionlang::ConstructKind constructKind = node->constructKind;
         std::optional<std::string> constructName = ionlang::Const::getConstructKindName(constructKind);
         std::string defaultName = "Unknown (" + std::to_string((int)constructKind) + ")";
