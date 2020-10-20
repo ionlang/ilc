@@ -133,7 +133,7 @@ void setupCli(CLI::App &app) {
     );
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     CLI::App app{"Ionlang command-line utility"};
 
     setupCli(app);
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
         log::info("Entering REPL mode; type '\\quit' to exit");
         log::verbose("Actions registered: " + std::to_string(jit::actions.getSize()));
 
-        std::string input;
+        std::string input{};
         JitDriver jitDriver{};
 
         while (true) {
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
 
         log::verbose("Using target triple: " + cli::options.target);
 
-        for (const auto &inputFilePath : cli::options.inputFilePaths) {
+        for (const auto& inputFilePath : cli::options.inputFilePaths) {
             inputStringStream << std::ifstream(inputFilePath).rdbuf();
 
             std::filesystem::path outputFilePath =

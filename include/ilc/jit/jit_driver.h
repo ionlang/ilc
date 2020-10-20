@@ -9,9 +9,9 @@
 namespace ilc {
     class JitDriver {
     private:
-        std::string input;
+        std::string input{};
 
-        std::optional<ionlang::TokenStream> tokenStream;
+        std::optional<ionlang::TokenStream> tokenStream{};
 
         std::vector<ionlang::Token> lex();
 

@@ -65,12 +65,12 @@ namespace ilc {
         std::vector<ionlang::Token> tokens,
         std::shared_ptr<DiagnosticVector> diagnostics
     ) {
-        ionlang::TokenStream tokenStream = ionlang::TokenStream(tokens);
+        ionlang::TokenStream tokenStream{tokens};
 
-        ionlang::Parser parser = ionlang::Parser(
+        ionlang::Parser parser{
             tokenStream,
             std::make_shared<ionshared::DiagnosticBuilder>(diagnostics)
-        );
+        };
 
         this->tokenStream = tokenStream;
 
@@ -117,7 +117,7 @@ namespace ilc {
     ) {
         try {
             // TODO: Creating mock AST?
-            ionlang::Ast ionLangAst = {
+            ionlang::Ast ionLangAst{
                 module
             };
 
@@ -176,7 +176,7 @@ namespace ilc {
                 throw std::runtime_error("Module is nullptr");
             }
 
-            ionir::Ast ionIrAst = {
+            ionir::Ast ionIrAst{
                 *ionIrModuleBuffer
             };
 
@@ -292,7 +292,7 @@ namespace ilc {
         llvm::InitializeAllAsmPrinters();
 
         llvm::Triple targetTriple{cli::options.target};
-        std::string error;
+        std::string error{};
 
         module->setTargetTriple(targetTriple.getTriple());
 
@@ -328,13 +328,15 @@ namespace ilc {
         llvm::TargetOptions targetOptions{};
         llvm::Optional<llvm::Reloc::Model> relocationModel{};
 
-        llvm::TargetMachine* targetMachine = target->createTargetMachine(
-            targetTriple.getTriple(),
-            cpuName,
-            cpuFeatures,
-            targetOptions,
-            relocationModel
-        );
+        std::shared_ptr<llvm::TargetMachine> targetMachine{
+            target->createTargetMachine(
+                targetTriple.getTriple(),
+                cpuName,
+                cpuFeatures,
+                targetOptions,
+                relocationModel
+            )
+        };
 
         /**
          * Configure the module's data layout and target triple
@@ -383,6 +385,13 @@ namespace ilc {
         destination.flush();
 
         return true;
+    }
+
+    Driver::Driver() noexcept :
+        outputFilePath(),
+        input(),
+        tokenStream(std::nullopt) {
+        //
     }
 
     bool Driver::link(std::vector<std::filesystem::path> objectFilePaths) {

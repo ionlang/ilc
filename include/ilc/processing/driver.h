@@ -12,11 +12,11 @@
 namespace ilc {
     class Driver {
     private:
-        std::filesystem::path outputFilePath;
+        std::filesystem::path outputFilePath{};
 
-        std::string input;
+        std::string input{};
 
-        std::optional<ionlang::TokenStream> tokenStream;
+        std::optional<ionlang::TokenStream> tokenStream{};
 
         std::vector<ionlang::Token> lex();
 
@@ -35,6 +35,8 @@ namespace ilc {
         void tryThrow(std::exception exception);
 
     public:
+        Driver() noexcept;
+
         bool link(std::vector<std::filesystem::path> objectFilePaths);
 
         /**

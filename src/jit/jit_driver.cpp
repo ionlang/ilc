@@ -91,7 +91,7 @@ namespace ilc {
     ) {
         try {
             // TODO: Creating mock AST?
-            ionlang::Ast ionLangAst = {
+            ionlang::Ast ionLangAst{
                 module
             };
 
@@ -99,7 +99,7 @@ namespace ilc {
              * Create a pass manager instance & run applicable passes
              * over the resulting AST.
              */
-            ionlang::PassManager ionLangPassManager = ionlang::PassManager();
+            ionlang::PassManager ionLangPassManager{};
 
             std::shared_ptr<ionshared::PassContext> passContext =
                 std::make_shared<ionshared::PassContext>(diagnostics);
@@ -137,11 +137,11 @@ namespace ilc {
                 throw std::runtime_error("Module is nullptr");
             }
 
-            ionir::Ast ionIrAst = {
+            ionir::Ast ionIrAst{
                 *ionIrModuleBuffer
             };
 
-            ionir::PassManager ionirPassManager = ionir::PassManager();
+            ionir::PassManager ionirPassManager{};
 
             // Register passes.
             if (cli::options.passes.contains(cli::PassKind::EntryPointCheck)) {
@@ -159,10 +159,10 @@ namespace ilc {
             // Run the pass manager on the IonIR AST.
             ionirPassManager.run(ionIrAst);
 
-            DiagnosticPrinter diagnosticPrinter = DiagnosticPrinter(DiagnosticPrinterOpts{
+            DiagnosticPrinter diagnosticPrinter{DiagnosticPrinterOpts{
                 this->input,
                 *this->tokenStream
-            });
+            }};
 
             DiagnosticStackTraceResult printResult =
                 diagnosticPrinter.createDiagnosticStackTrace(diagnostics);
@@ -183,12 +183,13 @@ namespace ilc {
 //            ionirPassManager.registerPass(std::make_shared<ionir::DeadCodeEliminationPass>());
 
             // Now, make the ionir::LlvmCodegenPass.
-            ionir::LlvmLoweringPass ionIrLlvmLoweringPass = ionir::LlvmLoweringPass(passContext);
+            ionir::LlvmLoweringPass ionIrLlvmLoweringPass{passContext};
 
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
             ionIrLlvmLoweringPass.visitModule(*ionIrModuleBuffer);
 
-            std::map<std::string, llvm::Module*> modules = ionIrLlvmLoweringPass.getModules()->unwrap();
+            std::map<std::string, llvm::Module*> modules =
+                ionIrLlvmLoweringPass.getModules()->unwrap();
 
             // Display the resulting code of all the modules.
             for (const auto& [key, value] : modules) {
@@ -213,7 +214,7 @@ namespace ilc {
                     << std::endl;
             }
         }
-        catch (std::exception &exception) {
+        catch (std::exception& exception) {
             log::error("LLVM code-generation: " + std::string(exception.what()));
             this->tryThrow(exception);
         }

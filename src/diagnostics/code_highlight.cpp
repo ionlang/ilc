@@ -17,10 +17,9 @@ namespace ilc {
         else if (ionlang::Classifier::isNumeric(kind)) {
             return ConsoleColor::magenta(value);
         }
+
         // No coating should be applied to the provided token's value.
-        else {
-            return value;
-        }
+        return value;
     }
 }
 

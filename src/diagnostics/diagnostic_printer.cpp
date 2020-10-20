@@ -213,7 +213,7 @@ namespace ilc {
 
         uint32_t lineNumberCounter = 0;
         std::optional<ionlang::Token> tokenBuffer = std::nullopt;
-        std::vector<ionlang::Token> lineBuffer = {};
+        std::vector<ionlang::Token> lineBuffer{};
         bool prime = true;
         bool met = false;
 
@@ -337,7 +337,7 @@ namespace ilc {
         ionshared::Diagnostic diagnostic,
         bool isPrime
     ) {
-        std::stringstream traceBody;
+        std::stringstream traceBody{};
 
         if (!isPrime) {
             traceBody << ILC_DIAGNOSTICS_TAB << "at ";
@@ -374,7 +374,7 @@ namespace ilc {
             return result;
         }
 
-        std::stringstream stringStream;
+        std::stringstream stringStream{};
         bool isPrime = true;
 
         // TODO: Verify it's actually copied (debug and inspect).

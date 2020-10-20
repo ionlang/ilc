@@ -9,7 +9,10 @@ namespace ilc::linker_util {
         return linkerKind != LinkerKind::MSVC;
     }
 
-    std::string getLinkerKindPrefix(LinkerKind linkerKind, bool isShortOption) noexcept {
+    std::string getLinkerKindPrefix(
+        LinkerKind linkerKind,
+        bool isShortOption
+    ) noexcept {
         return linker_util::isLinkerKindUnixLike(linkerKind)
             ? (isShortOption ? "-" : "--")
             : "/";

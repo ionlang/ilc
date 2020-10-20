@@ -21,7 +21,8 @@ namespace ilc {
                  * Attempt to read the file's contents. Will return std::nullopt
                  * if the operation fails.
                  */
-                std::optional<std::string> fileContents = FileSystem::readFileContents(*node.second);
+                std::optional<std::string> fileContents =
+                    FileSystem::readFileContents(*node.second);
 
                 // The file content's could not be read. Report an error.
                 if (!fileContents.has_value()) {

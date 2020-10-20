@@ -29,9 +29,9 @@ namespace ilc::cli {
     };
 
     struct Options {
-        std::vector<std::string> inputFilePaths;
+        std::vector<std::string> inputFilePaths{};
 
-        PhaseLevel phaseLevel;
+        PhaseLevel phaseLevel{PhaseLevel::CodeGeneration};
 
         // TODO: Should be default.
         std::set<PassKind> passes = std::set<cli::PassKind>({
@@ -46,40 +46,40 @@ namespace ilc::cli {
         /**
          * Target file path which to write executable to.
          */
-        std::string outputExecutablePath;
+        std::string outputExecutablePath{};
 
         /**
          * Target directory path onto which to write output
          * files to.
          */
-        std::string outputDirectoryPath;
+        std::string outputDirectoryPath{};
 
         /**
          * The target triple to be passed on to LLVM.
          */
-        std::string target;
+        std::string target{};
 
-        bool doPrintPhases;
+        bool doPrintPhases = false;
 
         /**
          * Whether to emit LLVM IR instead of LLVM bitcode.
          */
-        bool doLlvmIr;
+        bool doLlvmIr = false;
 
-        bool doDebug;
+        bool doDebug = false;
 
         /**
          * Whether to throw exceptions caught within
          * REPL mode.
          */
-        bool doJitThrow;
+        bool doJitThrow = false;
 
-        bool noColor;
+        bool noColor = false;
 
-        bool noVerbose;
+        bool noVerbose = false;
 
         // TODO: Temporary.
-        bool temp_nameResOnly;
+        bool temp_nameResOnly = false;
     };
 
     extern Options options;

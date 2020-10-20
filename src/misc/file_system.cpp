@@ -5,7 +5,7 @@
 
 namespace ilc {
     bool FileSystem::doesPathExist(const std::string& name) {
-        struct stat buffer;
+        struct stat buffer{};
 
         return stat(name.c_str(), &buffer) == 0;
     }
@@ -17,7 +17,7 @@ namespace ilc {
         }
 
         std::ifstream stream{path};
-        std::stringstream buffer;
+        std::stringstream buffer{};
 
         buffer << stream.rdbuf();
 

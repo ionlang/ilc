@@ -16,7 +16,7 @@ namespace ilc {
         );
 
     public:
-        const std::vector<std::filesystem::path> objectFilePaths;
+        const std::vector<std::filesystem::path> objectFilePaths{};
 
         explicit LinkerInvoker(
             std::vector<std::filesystem::path> objectFilePaths

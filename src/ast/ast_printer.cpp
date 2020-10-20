@@ -10,13 +10,16 @@
 #define IONIR_AST_PRINTER_LEAF "└"
 
 namespace ionir {
-    void AstPrinter::visitNode(const AstPrinterTreeNode &node) {
+    void AstPrinter::visitNode(const AstPrinterTreeNode& node) {
         if (this->depth != 0) {
             // TODO: Is depth correct?
             this->tree << IONIR_AST_PRINTER_V_LINE << AstPrinter::makeSpaces(2);
         }
 
-        std::string type = node.isLeaf ? IONIR_AST_PRINTER_LEAF : IONIR_AST_PRINTER_INTERSECTION;
+        std::string type = node.isLeaf
+            ? IONIR_AST_PRINTER_LEAF
+            : IONIR_AST_PRINTER_INTERSECTION;
+
         std::optional<std::string> constructName = node.construct->findConstructKindName();
 
         tree << type
@@ -28,7 +31,7 @@ namespace ionir {
     }
 
     std::string AstPrinter::makeSpaces(uint32_t depth) {
-        std::stringstream spaces;
+        std::stringstream spaces{};
 
         for (uint32_t i = 0; i < depth; i++) {
             spaces << " ";
@@ -37,7 +40,7 @@ namespace ionir {
         return spaces.str();
     }
 
-    AstPrinter::AstPrinter(const Ast &ast) :
+    AstPrinter::AstPrinter(const Ast& ast) :
         ast(ast),
         depth(0) {
         //
@@ -49,10 +52,10 @@ namespace ionir {
         }
 
         uint32_t depth = 0;
-        std::queue<AstPrinterTreeNode> queue = {};
-        std::stringstream tree;
+        std::queue<AstPrinterTreeNode> queue{};
+        std::stringstream tree{};
 
-        for (const auto &construct : this->ast) {
+        for (const auto& construct : this->ast) {
             queue.push(AstPrinterTreeNode{
                 depth,
                 construct->isLeafNode(),
@@ -68,7 +71,7 @@ namespace ionir {
 
             Ast children = node.construct->getChildrenNodes();
 
-            for (const auto &child : children) {
+            for (const auto& child : children) {
                 queue.push(AstPrinterTreeNode{
                     depth++,
                     child->isLeafNode(),

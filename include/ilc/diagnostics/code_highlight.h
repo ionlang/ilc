@@ -4,8 +4,7 @@
 #include <ionlang/lexical/token.h>
 
 namespace ilc {
-    class CodeHighlight {
-    public:
+    struct CodeHighlight {
         static std::string coat(ionlang::Token token);
     };
 }

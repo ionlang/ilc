@@ -3,8 +3,7 @@
 #include <string>
 
 namespace ilc {
-    class Const {
-    public:
+    struct Const {
         static const std::string appName;
     };
 }

@@ -10,15 +10,15 @@
 
 namespace ilc {
     struct CodeBlockLine {
-        std::string text;
+        std::string text{};
 
-        std::vector<ionlang::Token> tokens;
+        std::vector<ionlang::Token> tokens{};
 
-        std::optional<uint32_t> lineNumber = std::nullopt;
+        std::optional<uint32_t> lineNumber{std::nullopt};
 
-        bool colors = false;
+        bool colors{false};
 
-        std::optional<ionshared::Span> underline = std::nullopt;
+        std::optional<ionshared::Span> underline{std::nullopt};
     };
 
     typedef std::vector<CodeBlockLine> CodeBlock;

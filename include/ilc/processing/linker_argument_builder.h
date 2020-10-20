@@ -8,7 +8,7 @@
 namespace ilc {
     class LinkerArgumentBuilder {
     private:
-        std::stringstream argumentStream;
+        std::stringstream argumentStream{};
 
     public:
         const LinkerKind targetLinkerKind;

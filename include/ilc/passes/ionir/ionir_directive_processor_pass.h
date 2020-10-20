@@ -6,7 +6,7 @@
 namespace ilc {
     class IonIrDirectiveProcessorPass : public ionir::Pass {
     private:
-        ionshared::OptPtr<std::stringstream> includeOutputStream;
+        ionshared::OptPtr<std::stringstream> includeOutputStream{};
 
     public:
         IONSHARED_PASS_ID;

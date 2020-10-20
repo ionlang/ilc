@@ -53,8 +53,7 @@ namespace ilc {
     };
 
     // TODO: Finish implementation.
-    class ConsoleColor {
-    public:
+    struct ConsoleColor {
         const static std::string reset;
 
         const static std::string bold;

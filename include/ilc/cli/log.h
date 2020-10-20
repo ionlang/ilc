@@ -70,7 +70,7 @@ namespace ilc::log {
             throw std::runtime_error("Could not determine text of provided log level");
         }
 
-        std::stringstream resultStream;
+        std::stringstream resultStream{};
 
         resultStream << ConsoleColor::coat(*logLevelText, color)
             << " "
