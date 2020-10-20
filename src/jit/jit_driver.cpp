@@ -48,18 +48,16 @@ namespace ilc {
         this->tokenStream = tokenStream;
 
         try {
+            // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
+            std::cout << ConsoleColor::coat("--- Parser ---", ColorKind::ForegroundGreen)
+                << std::endl;
+
             ionlang::AstPtrResult<ionlang::Module> moduleResult = parser.parseModule();
 
             // TODO: Improve if block?
             if (ionlang::util::hasValue(moduleResult)) {
-                // TODO: What if multiple top-level, in-line constructs are parsed? (Additional note below).
-                std::cout << ConsoleColor::coat("--- Parser ---", ColorKind::ForegroundGreen)
-                    << std::endl;
-
                 return ionlang::util::getResultValue(moduleResult);
             }
-
-            log::error("Parser: Could not parse module");
 
             DiagnosticPrinter diagnosticPrinter{
                 DiagnosticPrinterOpts{
@@ -79,7 +77,7 @@ namespace ilc {
                 log::error("Could not create stack-trace");
             }
         }
-        catch (std::exception &exception) {
+        catch (std::exception& exception) {
             log::error("Parser: " + std::string(exception.what()));
             this->tryThrow(exception);
         }
@@ -130,7 +128,10 @@ namespace ilc {
             // Visit the parsed module construct.
             ionIrLoweringPass.visitModule(module);
 
-            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = ionIrLoweringPass.getModuleBuffer();
+            // TODO: Verify a module exists/was emitted, before retrieving it.
+
+            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer =
+                ionIrLoweringPass.getModules()->unwrap().begin()->second;
 
             if (!ionshared::util::hasValue(ionIrModuleBuffer)) {
                 throw std::runtime_error("Module is nullptr");
@@ -190,7 +191,7 @@ namespace ilc {
             std::map<std::string, llvm::Module*> modules = ionIrLlvmLoweringPass.getModules()->unwrap();
 
             // Display the resulting code of all the modules.
-            for (const auto &[key, value] : modules) {
+            for (const auto& [key, value] : modules) {
                 std::cout
                     << ConsoleColor::coat(
                         "--- LLVM code-generation: " + key + " ---",

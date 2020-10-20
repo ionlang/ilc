@@ -5,8 +5,6 @@
 #include <ilc/cli/options.h>
 #include <ilc/cli/console_color.h>
 
-#define ILC_LOG_TEXT_WIDTH 7 + 1
-
 namespace ilc::log {
     enum class LogLevel {
         Verbose = (int)ColorKind::ForegroundGray,
@@ -74,11 +72,10 @@ namespace ilc::log {
 
         std::stringstream resultStream;
 
-        resultStream << std::setw(ILC_LOG_TEXT_WIDTH)
-            << ConsoleColor::coat(*logLevelText, color)
+        resultStream << ConsoleColor::coat(*logLevelText, color)
             << " "
             << text
-            << std::endl;
+            << "\n";
 
         return resultStream;
     }
@@ -92,7 +89,7 @@ namespace ilc::log {
             return;
         }
 
-        makeAndPrint(LogLevel::Verbose, text);
+        log::makeAndPrint(LogLevel::Verbose, text);
     }
 
     static void success(std::string text) {

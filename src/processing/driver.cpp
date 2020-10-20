@@ -86,8 +86,6 @@ namespace ilc {
                 return ionlang::util::getResultValue(moduleResult);
             }
 
-            log::error("Parser: Could not parse module");
-
             DiagnosticPrinter diagnosticPrinter{DiagnosticPrinterOpts{
                 this->input,
                 tokenStream
@@ -169,7 +167,10 @@ namespace ilc {
             // Visit the parsed module construct.
             ionIrLoweringPass.visitModule(module);
 
-            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer = ionIrLoweringPass.getModuleBuffer();
+            // TODO: Verify a module exists/was emitted, before retrieving it.
+
+            ionshared::OptPtr<ionir::Module> ionIrModuleBuffer =
+                ionIrLoweringPass.getModules()->unwrap().begin()->second;
 
             if (!ionshared::util::hasValue(ionIrModuleBuffer)) {
                 throw std::runtime_error("Module is nullptr");

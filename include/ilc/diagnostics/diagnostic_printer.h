@@ -55,19 +55,13 @@ namespace ilc {
         );
 
         [[nodiscard]] static std::string resolveInputText(
-            const std::string &input,
+            const std::string& input,
             std::vector<ionlang::Token> lineBuffer
         );
 
         [[nodiscard]] static std::string createTraceHeader(
             ionshared::Diagnostic diagnostic
         ) noexcept;
-
-        DiagnosticPrinterOpts opts;
-
-        [[nodiscard]] std::string getInput() const;
-
-        [[nodiscard]] ionlang::TokenStream getTokenStream() const;
 
         std::optional<CodeBlock> createCodeBlockNear(
             const uint32_t lineNumber,
@@ -76,17 +70,17 @@ namespace ilc {
         );
 
         std::optional<CodeBlock> createCodeBlockNear(
-            const ionlang::Token &token,
+            const ionlang::Token& token,
             uint32_t grace = ILC_DIAGNOSTIC_PRINTER_DEFAULT_GRACE
         );
 
         std::optional<CodeBlock> createCodeBlockNear(
-            const ionshared::SourceLocation &sourceLocation,
+            const ionshared::SourceLocation& sourceLocation,
             uint32_t grace = ILC_DIAGNOSTIC_PRINTER_DEFAULT_GRACE
         );
 
         std::optional<CodeBlock> createCodeBlockNear(
-            const ionshared::Diagnostic &diagnostic,
+            const ionshared::Diagnostic& diagnostic,
             uint32_t grace = ILC_DIAGNOSTIC_PRINTER_DEFAULT_GRACE
         );
 
@@ -96,6 +90,8 @@ namespace ilc {
         );
 
     public:
+        const DiagnosticPrinterOpts opts;
+
         explicit DiagnosticPrinter(DiagnosticPrinterOpts opts);
 
         DiagnosticStackTraceResult createDiagnosticStackTrace(

@@ -1,36 +1,43 @@
 #include <sstream>
+#include <ionlang/const/const_name.h>
 #include <ionlang/misc/util.h>
 #include <ilc/cli/log.h>
-#include <ilc/cli/console_color.h>
 #include <ilc/diagnostics/code_highlight.h>
 #include <ilc/diagnostics/diagnostic_printer.h>
 
+#define ILC_DIAGNOSTICS_TAB "   "
+
 namespace ilc {
     std::string DiagnosticPrinter::makeGutter(std::optional<uint32_t> lineNumber) {
+        /**
+         * NOTE: If the separator is modified, and its length changes,
+         * the gutter separator length constant defined on top of
+         * this file must be updated as well.
+         */
         return (lineNumber.has_value() ? std::to_string(*lineNumber) : " ") + " | ";
     }
 
     std::string DiagnosticPrinter::makeCodeBlockLine(CodeBlockLine codeBlockLine) {
         std::stringstream stringStream;
+        std::string gutterText = DiagnosticPrinter::makeGutter(codeBlockLine.lineNumber);
 
-        stringStream << "\t"
-            + DiagnosticPrinter::makeGutter(codeBlockLine.lineNumber)
+        stringStream << ILC_DIAGNOSTICS_TAB
+            + gutterText
             + codeBlockLine.text
             + "\n";
 
         if (codeBlockLine.underline.has_value()) {
-            // Start the new line with the same indentation (a single tab).
-            stringStream << "\t";
-
-            const ionshared::Span underline = *codeBlockLine.underline;
-
-            // Fill in spaces before starting column position.
-            for (uint32_t i = 0; i < underline.startPosition; i++) {
-                stringStream << " ";
-            }
+            // TODO: Investigate offset & its edge cases.
+            // TODO: Width must be the LARGEST/MAX length of line.
+            /**
+             * Start the new line with the same indentation (a single tab),
+             * and additionally add a width to account for the gutter text.
+             * An offset of 1 is added to the length.
+             */
+            stringStream << ILC_DIAGNOSTICS_TAB << std::setw(gutterText.length() + 1);
 
             // Fill in the underline with denoting character(s).
-            for (uint32_t i = 0; i < underline.getEndPosition(); i++) {
+            for (uint32_t i = 0; i < codeBlockLine.underline.value().getEndPosition(); i++) {
                 stringStream << "^";
             }
 
@@ -51,7 +58,7 @@ namespace ilc {
         std::stringstream result;
 
         // TODO: Is mutating the line here a good idea? Will it change the original? It should only mutate to return here.
-        for (auto &line : codeBlock) {
+        for (auto& line : codeBlock) {
             if (colors) {
                 // Entire code should be highlighted gray by default.
                 // TODO: Actually use gray color.
@@ -59,7 +66,7 @@ namespace ilc {
 //                line.text = ConsoleColor::white(line.text);
 
                 // Apply syntax highlighting to the line's applicable token(s).
-                for (const auto &token : line.tokens) {
+                for (const auto& token : line.tokens) {
                     /**
                      * Note that value coating is not bound to occur; the value
                      * may remain the same. It depends on the token's kind.
@@ -141,7 +148,7 @@ namespace ilc {
     }
 
     std::string DiagnosticPrinter::resolveInputText(
-        const std::string &input,
+        const std::string& input,
         std::vector<ionlang::Token> lineBuffer
     ) {
         if (lineBuffer.empty() || input.empty()) {
@@ -153,30 +160,34 @@ namespace ilc {
             : lineBuffer[0].value;
     }
 
-    std::string DiagnosticPrinter::createTraceHeader(ionshared::Diagnostic diagnostic) noexcept {
+    std::string DiagnosticPrinter::createTraceHeader(
+        ionshared::Diagnostic diagnostic
+    ) noexcept {
         std::stringstream traceHeader;
-
-        if (diagnostic.sourceLocation.has_value()) {
-            const ionshared::Span lines = diagnostic.sourceLocation.value().lines;
-            const ionshared::Span column = diagnostic.sourceLocation.value().column;
-
-            // TODO: File path.
-            traceHeader << /*this->location.filePath +*/ ":"
-                << lines.startPosition
-                << "-"
-                << lines.getEndPosition()
-                << ":"
-                << column.startPosition
-                << "-"
-                << column.getEndPosition()
-                << " | ";
-        }
 
         // NOTE: The result is returned with a newline character.
         traceHeader << DiagnosticPrinter::makeDiagnosticKindText(
             diagnostic.kind,
             diagnostic.message
         );
+
+        if (diagnostic.sourceLocation.has_value()) {
+            ionshared::SourceLocation sourceLocation = diagnostic.sourceLocation.value();
+
+            // TODO: File path.
+            traceHeader << ILC_DIAGNOSTICS_TAB
+                << "@ "
+                << ionlang::const_name::unknown
+                << ":"
+                << sourceLocation.lines.startPosition
+                << "-"
+                << sourceLocation.lines.getEndPosition()
+                << ":"
+                << sourceLocation.column.startPosition
+                << "-"
+                << sourceLocation.column.getEndPosition()
+                << "\n";
+        }
 
         return traceHeader.str();
     }
@@ -186,26 +197,19 @@ namespace ilc {
         //
     }
 
-    std::string DiagnosticPrinter::getInput() const {
-        return this->opts.input;
-    }
-
-    ionlang::TokenStream DiagnosticPrinter::getTokenStream() const {
-        return this->opts.tokenStream;
-    }
-
     std::optional<CodeBlock> DiagnosticPrinter::createCodeBlockNear(
         const uint32_t lineNumber,
         ionshared::Span column,
         const uint32_t grace
     ) {
-        CodeBlock codeBlock = {};
+        CodeBlock codeBlock{};
+        ionlang::TokenStream tokenStream = this->opts.tokenStream;
+
+        tokenStream.begin();
 
         // Compute start & end line for the code block.
         const uint32_t start = grace >= lineNumber ? 0 : lineNumber - grace;
         const uint32_t end = lineNumber + grace;
-
-        this->opts.tokenStream.begin();
 
         uint32_t lineNumberCounter = 0;
         std::optional<ionlang::Token> tokenBuffer = std::nullopt;
@@ -229,12 +233,12 @@ namespace ilc {
         };
 
         while (lineNumberCounter != start) {
-            if (!this->opts.tokenStream.hasNext()) {
+            if (!tokenStream.hasNext()) {
                 // Could not reach starting point.
                 return std::nullopt;
             }
 
-            tokenBuffer = this->opts.tokenStream.next();
+            tokenBuffer = tokenStream.next();
 
             if (tokenBuffer->lineNumber != lineNumberCounter) {
                 lineNumberCounter = tokenBuffer->lineNumber;
@@ -245,16 +249,16 @@ namespace ilc {
             met = lineNumberCounter >= lineNumber;
 
             if (!prime) {
-                tokenBuffer = this->opts.tokenStream.next();
+                tokenBuffer = tokenStream.next();
             }
             else {
-                tokenBuffer = this->opts.tokenStream.get();
+                tokenBuffer = tokenStream.get();
                 prime = false;
             }
 
             lineBuffer.push_back(*tokenBuffer);
 
-            uint32_t nextLineNumber = this->opts.tokenStream.peek()->lineNumber;
+            uint32_t nextLineNumber = tokenStream.peek()->lineNumber;
 
             if (nextLineNumber != lineNumberCounter) {
                 codeBlock.push_back(
@@ -272,7 +276,7 @@ namespace ilc {
                 continue;
             }
 
-            bool streamHasNext = this->opts.tokenStream.hasNext();
+            bool streamHasNext = tokenStream.hasNext();
 
             // Could not reach end point.
             if (!streamHasNext && !met) {
@@ -291,7 +295,7 @@ namespace ilc {
     }
 
     std::optional<CodeBlock> DiagnosticPrinter::createCodeBlockNear(
-        const ionlang::Token &token,
+        const ionlang::Token& token,
         uint32_t grace
     ) {
         return this->createCodeBlockNear(
@@ -307,7 +311,7 @@ namespace ilc {
     }
 
     std::optional<CodeBlock> DiagnosticPrinter::createCodeBlockNear(
-        const ionshared::SourceLocation &sourceLocation,
+        const ionshared::SourceLocation& sourceLocation,
         uint32_t grace
     ) {
         // TODO: Use start AND end line positions.
@@ -319,7 +323,7 @@ namespace ilc {
     }
 
     std::optional<CodeBlock> DiagnosticPrinter::createCodeBlockNear(
-        const ionshared::Diagnostic &diagnostic,
+        const ionshared::Diagnostic& diagnostic,
         uint32_t grace
     ) {
         if (!diagnostic.sourceLocation.has_value()) {
@@ -329,11 +333,14 @@ namespace ilc {
         return this->createCodeBlockNear(*diagnostic.sourceLocation, grace);
     }
 
-    std::string DiagnosticPrinter::createTraceBody(ionshared::Diagnostic diagnostic, bool isPrime) {
+    std::string DiagnosticPrinter::createTraceBody(
+        ionshared::Diagnostic diagnostic,
+        bool isPrime
+    ) {
         std::stringstream traceBody;
 
         if (!isPrime) {
-            traceBody << "\tat ";
+            traceBody << ILC_DIAGNOSTICS_TAB << "at ";
         }
         else {
             std::optional<CodeBlock> codeBlock =
@@ -376,7 +383,7 @@ namespace ilc {
 
         // TODO: Variable 'longestLineNumberDigits' needed to calculate extra prefix spaces. Loop through the diagnostics and find the highest line number.
 
-        for (const auto &diagnostic : diagnosticsNativeVector) {
+        for (const auto& diagnostic : diagnosticsNativeVector) {
             bool isErrorLike = diagnostic.kind == ionshared::DiagnosticKind::Error
                 || diagnostic.kind == ionshared::DiagnosticKind::Fatal
                 || diagnostic.kind == ionshared::DiagnosticKind::InternalError;
@@ -389,7 +396,8 @@ namespace ilc {
             stringStream << DiagnosticPrinter::createTraceHeader(diagnostic);
 
             if (diagnostic.sourceLocation.has_value()) {
-                stringStream << this->createTraceBody(diagnostic, isPrime);
+                // NOTE: This extra space will separate the header and the body by 1 space.
+                stringStream << "\n" << this->createTraceBody(diagnostic, isPrime);
             }
 
             // Raise the prime flag to take effect upon next iteration.
@@ -409,7 +417,9 @@ namespace ilc {
         return result;
     }
 
-    bool DiagnosticPrinter::printDiagnosticStackTrace(std::shared_ptr<DiagnosticVector> diagnostics) {
+    bool DiagnosticPrinter::printDiagnosticStackTrace(
+        std::shared_ptr<DiagnosticVector> diagnostics
+    ) {
         DiagnosticStackTraceResult diagnosticStackTraceResult =
             this->createDiagnosticStackTrace(diagnostics);
 
