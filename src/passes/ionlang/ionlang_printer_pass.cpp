@@ -19,6 +19,7 @@ namespace ilc {
         uint32_t maxDepth
     ) :
         ionlang::Pass(context),
+        depth(0),
         maxDepth(maxDepth) {
         //
     }

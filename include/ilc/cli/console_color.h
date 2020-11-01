@@ -4,7 +4,7 @@
 #include <string>
 
 namespace ilc {
-    enum class ConsoleSpecial {
+    enum struct ConsoleSpecial {
         Reset = 0,
 
         Bold = 1,
@@ -14,7 +14,7 @@ namespace ilc {
         Invert = 7
     };
 
-    enum class ColorKind {
+    enum struct ColorKind {
         ForegroundBlack = 30,
 
         ForegroundRed = 31,

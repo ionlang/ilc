@@ -14,7 +14,7 @@ namespace ilc::cli {
         CodeGeneration
     };
 
-    enum class PassKind {
+    enum struct PassKind {
         TypeChecking,
 
         NameResolution,

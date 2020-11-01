@@ -6,7 +6,7 @@
 #include <ilc/cli/console_color.h>
 
 namespace ilc::log {
-    enum class LogLevel {
+    enum struct LogLevel {
         Verbose = (int)ColorKind::ForegroundGray,
 
         Success = (int)ColorKind::ForegroundGreen,

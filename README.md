@@ -22,18 +22,16 @@ might work, but you will need to modify `CMakeLists.txt`, specifically where
 # Clone the repository.¹
 $ git clone https://github.com/ionlang
 $ cd ionlang
+$ git submodule update --init --recursive
 
 # Generate Makefiles and build.
-$ mkdir build
-$ cd build
-$ cmake ..
-$ cmake --build .
+$ cmake -S ./ -B build/
+$ cmake --build build/
 ```
 
 ---
 1. _Make sure you've selected the correct branch you're intending to
-build (`dev` for latest changes, `master` for stable), and initialized
-git submodules after cloning the repository and prior to building._
+build (`dev` for latest changes, `master` for stable).
 
 #### Common problems
 

@@ -19,7 +19,7 @@
 
 using namespace ilc;
 
-void setupCli(CLI::App &app) {
+void setupCli(CLI::App& app) {
     // Command(s).
     cli::astCommand = app.add_subcommand(
         "ast",
@@ -213,9 +213,9 @@ int main(int argc, char** argv) {
 
         // TODO: Module is nullptr.
         std::shared_ptr<ionir::Prototype> prototype =
-            std::make_shared<ionir::Prototype>("foobar", args, returnType, nullptr);
+            ionir::Prototype::make("foobar", args, returnType);
 
-        std::queue<std::shared_ptr<ionir::Construct>> childrenQueue = {};
+        std::queue<std::shared_ptr<ionir::Construct>> childrenQueue{};
 
         // Push initial child.
         childrenQueue.push(prototype->nativeCast());

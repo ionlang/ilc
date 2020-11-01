@@ -5,7 +5,7 @@
 namespace ilc {
     class IonLangPrinterPass : public ionlang::Pass {
     private:
-        uint32_t depth{};
+        uint32_t depth;
 
         std::string makeSpaces(uint32_t length) const noexcept;
 
