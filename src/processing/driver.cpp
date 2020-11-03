@@ -240,8 +240,8 @@ namespace ilc {
             // Visit the resulting IonIR module buffer from the IonLang codegen pass.
             ionIrLlvmLoweringPass.visitModule(*ionIrModuleBuffer);
 
-            std::map<std::string, llvm::Module*> modules =
-                ionIrLlvmLoweringPass.getModules()->unwrap();
+            std::map<std::string, std::shared_ptr<llvm::Module>> modules =
+                ionIrLlvmLoweringPass.llvmModules->unwrap();
 
             if (modules.empty()) {
                 std::cout
@@ -267,10 +267,10 @@ namespace ilc {
 
                     << std::endl;
 
-                ionshared::LlvmModule llvmModule{value};
+                ionshared::LlvmModule llvmModule{value.get()};
 
                 llvmModule.printIr();
-                result.push_back(value);
+                result.push_back(value.get());
             }
 
             return result;
